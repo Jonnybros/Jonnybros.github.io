@@ -56,3 +56,17 @@
         alert("Copy and send this link to " + target + " to give them Seller Status:\n\n" + sellerLink);
     }
 </script>
+<!-- Admin Panel (Only visible to Jonny) -->
+<div id="adminPanel" style="display:none; background: #232428; padding: 20px; border: 1px solid var(--blurple);">
+    <h3>Admin: Jonny's Command Center</h3>
+    <button class="btn" onclick="promoteUser()">Promote User to Seller</button>
+</div>
+
+<!-- Seller Menu -->
+<div id="sellerMenu" style="display:none; padding: 20px;">
+    <h2>Your Seller Dashboard</h2>
+    <div id="slotContainer" class="grid"></div>
+    <hr>
+    <h3>Add New Custom Item</h3>
+    <a href="YOUR_GOOGLE_FORM_FOR_NEW_ITEMS" class="btn">Open Submission Form</a>
+</div>
