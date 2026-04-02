@@ -82,31 +82,73 @@
         </div>
     </div>
 
-    <script>
-        // Load User Data
-        function updateUI() {
-            const user = localStorage.getItem('username') || "Guest";
-            const emoji = localStorage.getItem('userEmoji') || "👤";
-            document.getElementById('navUser').innerText = user;
-            document.getElementById('drawerUser').innerText = user;
-            document.getElementById('navEmoji').innerText = emoji;
-            document.getElementById('drawerEmoji').innerText = emoji;
-        }
+   <script>
+    // 1. RUN THIS AS SOON AS THE PAGE LOADS
+    window.onload = function() {
+        checkAuth();
+        updateUI();
+    };
 
-        function toggleDrawer() {
-            const drawer = document.getElementById('drawer');
-            const overlay = document.getElementById('overlay');
-            drawer.classList.toggle('open');
-            overlay.style.display = drawer.classList.contains('open') ? 'block' : 'none';
+    function checkAuth() {
+        const user = localStorage.getItem('username');
+        const modal = document.getElementById('authModal');
+        
+        if (!user) {
+            // If no user found, force the login modal to show
+            modal.style.display = 'flex';
+            // Disable scrolling so they can't see the shop
+            document.body.style.overflow = 'hidden';
+        } else {
+            modal.style.display = 'none';
+            document.body.style.overflow = 'auto';
         }
+    }
 
-        function signOut() {
-            localStorage.clear(); // Clears user data
-            alert("Signed out! Please log back in.");
-            location.reload(); // Refresh to trigger sign-up popup
+    // 2. THE SIGN UP FUNCTION
+    function finishSignup() {
+        const userInput = document.getElementById('username').value;
+        const passInput = document.getElementById('password').value;
+
+        if (userInput.length > 2 && passInput.length > 2) {
+            localStorage.setItem('username', userInput);
+            localStorage.setItem('isLoggedIn', 'true');
+            localStorage.setItem('userEmoji', '👤'); // Default emoji
+            
+            // Hide the modal and refresh UI
+            document.getElementById('authModal').style.display = 'none';
+            document.body.style.overflow = 'auto';
+            updateUI();
+            alert("Welcome to the shop, " + userInput + "!");
+        } else {
+            alert("Please enter a valid Username and Password.");
         }
+    }
 
-        window.onload = updateUI;
-    </script>
+    // 3. UPDATING THE UI
+    function updateUI() {
+        const user = localStorage.getItem('username') || "Guest";
+        const emoji = localStorage.getItem('userEmoji') || "👤";
+        
+        document.getElementById('navUser').innerText = user;
+        document.getElementById('drawerUser').innerText = user;
+        document.getElementById('navEmoji').innerText = emoji;
+        document.getElementById('drawerEmoji').innerText = emoji;
+    }
+
+    // 4. DRAWER LOGIC
+    function toggleDrawer() {
+        const drawer = document.getElementById('drawer');
+        const overlay = document.getElementById('overlay');
+        drawer.classList.toggle('open');
+        overlay.style.display = drawer.classList.contains('open') ? 'block' : 'none';
+    }
+
+    // 5. THE SIGN OUT FUNCTION
+    function signOut() {
+        localStorage.clear(); // Deletes the "account"
+        location.reload();    // Refreshing the page triggers checkAuth() which shows the login box
+    }
+</script>
+
 </body>
 </html>
