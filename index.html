@@ -5,15 +5,18 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>School Marketplace</title>
 
-<!-- ✅ FIREBASE (SAFE VERSION - NO IMPORTS) -->
+<!-- ✅ Fix favicon error -->
+<link rel="icon" href="data:,">
+
+<!-- ✅ Firebase (NO imports anywhere) -->
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
 
 <style>
 body { background-color: #313338; color: #dbdee1; font-family: sans-serif; margin: 0; display: flex; flex-direction: column; height: 100vh; }
-.modal-overlay { display: flex; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 1000; justify-content: center; align-items: center; }
+.modal-overlay { display: flex; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); justify-content: center; align-items: center; }
 .modal-box { background-color: #2b2d31; padding: 25px; border-radius: 8px; width: 300px; text-align: center; }
-.top-nav { background: #2b2d31; padding: 10px 16px; display: flex; align-items: center; justify-content: space-between; }
+.top-nav { background: #2b2d31; padding: 10px 16px; display: flex; justify-content: space-between; }
 .menu-sidebar { width: 220px; background: #2b2d31; padding: 15px; }
 .content-area { flex-grow: 1; padding: 20px; text-align: center; }
 .btn { background: #5865f2; color: white; border: none; padding: 10px; width: 100%; margin-top: 10px; cursor: pointer; }
@@ -25,46 +28,38 @@ input { width: 100%; padding: 10px; margin-bottom: 10px; background: #1e1f22; bo
 
 <body>
 
-<!-- LOGIN -->
 <div id="authModal" class="modal-overlay">
     <div class="modal-box">
         <h2>Welcome</h2>
         <input type="text" id="userInput" placeholder="Username">
         <input type="password" id="passInput" placeholder="Password">
         <button class="btn" onclick="handleAuth()">Log In</button>
-        <p id="status" style="color:orange; font-size:12px; margin-top:10px;">
-            Connecting to Firebase...
-        </p>
+        <p id="status" style="color:orange;">Connecting...</p>
     </div>
 </div>
 
 <nav class="top-nav">
-    <div style="font-weight:bold;">🎒 MARKET</div>
+    <div>🎒 MARKET</div>
     <div id="navUser">Guest</div>
 </nav>
 
 <div style="display:flex; height:100%;">
     <div class="menu-sidebar">
-        <div onclick="show('home')" style="cursor:pointer; padding:10px;">🏠 Home</div>
-        <div onclick="show('seller')" style="cursor:pointer; padding:10px; color:#23a55a;">🛠️ Seller</div>
+        <div onclick="showPage('home')" style="padding:10px; cursor:pointer;">🏠 Home</div>
+        <div onclick="showPage('seller')" style="padding:10px; cursor:pointer; color:#23a55a;">🛠️ Seller</div>
     </div>
 
     <div class="content-area">
-        <div id="home" class="category-view active">
-            <h1># marketplace</h1>
-        </div>
-
+        <div id="home" class="category-view active"><h1># marketplace</h1></div>
         <div id="seller" class="category-view">
             <h2>Seller Dashboard</h2>
-            <button class="btn" onclick="promoteSelf()">Promote Me (Admin)</button>
+            <button class="btn" onclick="promoteSelf()">Promote Me</button>
         </div>
     </div>
 </div>
 
 <script>
-/* =========================
-   🔥 PASTE YOUR REAL CONFIG HERE
-   ========================= */
+/* 🔥 REPLACE THIS WITH YOUR FIREBASE CONFIG */
 // Import the functions you need from the SDKs you need
 import { initializeApp } from "firebase/app";
 // TODO: Add SDKs for Firebase products that you want to use
@@ -83,102 +78,58 @@ const firebaseConfig = {
 
 // Initialize Firebase
 const app = initializeApp(firebaseConfig);
+
 let db = null;
 
-/* =========================
-   🔌 INIT FIREBASE SAFELY
-   ========================= */
-function initFirebase() {
+/* ✅ INIT FIREBASE */
+window.onload = function () {
     try {
-        if (!firebase.apps.length) {
-            firebase.initializeApp(firebaseConfig);
-        }
-
+        firebase.initializeApp(firebaseConfig);
         db = firebase.database();
 
-        document.getElementById('status').innerText = "✅ Connected to Firebase!";
-        document.getElementById('status').style.color = "#23a55a";
+        document.getElementById("status").innerText = "✅ Connected!";
+        document.getElementById("status").style.color = "lime";
 
-        console.log("Firebase connected successfully");
-
-    } catch (error) {
-        console.error("Firebase error:", error);
-
-        document.getElementById('status').innerText =
-            "❌ Firebase Error: " + error.message;
-        document.getElementById('status').style.color = "red";
-    }
-}
-
-/* =========================
-   🔐 LOGIN (LOCAL STORAGE)
-   ========================= */
-function handleAuth() {
-    const username = document.getElementById('userInput').value;
-
-    if (!username) {
-        alert("Enter a username");
-        return;
+    } catch (e) {
+        document.getElementById("status").innerText = "❌ " + e.message;
+        document.getElementById("status").style.color = "red";
+        console.error(e);
     }
 
-    localStorage.setItem('user', username);
-
-    document.getElementById('authModal').style.display = 'none';
-    document.getElementById('navUser').innerText = username;
-}
-
-/* =========================
-   🛠️ PROMOTE USER
-   ========================= */
-function promoteSelf() {
-    const user = localStorage.getItem('user');
-
-    if (!user) {
-        alert("Not logged in");
-        return;
-    }
-
-    if (!db) {
-        alert("Database not connected");
-        return;
-    }
-
-    db.ref('users/' + user).update({
-        is_seller: true,
-        timestamp: Date.now()
-    })
-    .then(() => {
-        alert("✅ You are now a seller!");
-    })
-    .catch((err) => {
-        alert("❌ Error: " + err.message);
-    });
-}
-
-/* =========================
-   📂 PAGE SWITCHING
-   ========================= */
-function show(id) {
-    document.querySelectorAll('.category-view').forEach(el =>
-        el.classList.remove('active')
-    );
-
-    document.getElementById(id).classList.add('active');
-}
-
-/* =========================
-   🚀 START APP
-   ========================= */
-window.onload = () => {
-    initFirebase();
-
-    const savedUser = localStorage.getItem('user');
-
+    const savedUser = localStorage.getItem("user");
     if (savedUser) {
-        document.getElementById('authModal').style.display = 'none';
-        document.getElementById('navUser').innerText = savedUser;
+        document.getElementById("authModal").style.display = "none";
+        document.getElementById("navUser").innerText = savedUser;
     }
 };
+
+/* ✅ LOGIN */
+function handleAuth() {
+    const u = document.getElementById("userInput").value;
+    if (!u) return alert("Enter username");
+
+    localStorage.setItem("user", u);
+    document.getElementById("authModal").style.display = "none";
+    document.getElementById("navUser").innerText = u;
+}
+
+/* ✅ PROMOTE */
+function promoteSelf() {
+    const u = localStorage.getItem("user");
+
+    if (!u) return alert("Not logged in");
+    if (!db) return alert("Database not connected");
+
+    db.ref("users/" + u).update({ seller: true })
+        .then(() => alert("✅ You are now a seller"))
+        .catch(err => alert("❌ " + err.message));
+}
+
+/* ✅ PAGE SWITCH */
+function showPage(id) {
+    document.querySelectorAll(".category-view").forEach(el => el.classList.remove("active"));
+    document.getElementById(id).classList.add("active");
+}
 </script>
 
 </body>
