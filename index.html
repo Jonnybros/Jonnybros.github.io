@@ -1,6 +1,34 @@
-<!-- 1. The Firebase "Brains" (FIXED LINKS - DO NOT CHANGE) -->
+<!-- 1. LOAD FIREBASE (Must be these EXACT links) -->
 <script src="https://gstatic.com"></script>
 <script src="https://gstatic.com"></script>
+
+<script>
+  // 2. CONFIGURE FIREBASE
+  const firebaseConfig = {
+    apiKey: "AIzaSyBZTGndL235B-c6mYft3mblBz6eN4vqRLM",
+    authDomain: "://firebaseapp.com",
+    databaseURL: "https://firebaseio.com",
+    projectId: "school-market-42bf2",
+    storageBucket: "school-market-42bf2.firebasestorage.app",
+    messagingSenderId: "849244125573",
+    appId: "1:849244125573:web:cca81082d1204de4db6cec"
+  };
+
+  // 3. CONNECT
+  if (!firebase.apps.length) {
+    firebase.initializeApp(firebaseConfig);
+  }
+  const db = firebase.database();
+
+  // 4. YOUR ADMIN CODE
+  function promoteUser(targetUser, tier) {
+      db.ref('users/' + targetUser).update({
+          is_seller: true,
+          seller_tier: tier
+      });
+      alert(targetUser + " is now a live Seller!");
+  }
+</script>
 
 <script>
   // 2. Your Firebase Config (FIXED FOR YOUR PROJECT)
