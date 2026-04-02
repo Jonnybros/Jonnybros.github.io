@@ -12,6 +12,7 @@
             --blurple: #5865f2;
             --text: #dbdee1;
             --danger: #da373c;
+            --success: #23a55a;
         }
 
         body { 
@@ -19,49 +20,70 @@
             margin: 0; display: flex; flex-direction: column; height: 100vh; overflow: hidden;
         }
 
-        /* Top Bar */
-        .top-nav { background: var(--bg-secondary); padding: 10px 16px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid rgba(0,0,0,0.2); }
+        /* --- AUTH MODAL --- */
+        #authModal {
+            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.95); z-index: 1000; justify-content: center; align-items: center;
+        }
+        .modal-content {
+            background-color: var(--bg-secondary); padding: 30px; border-radius: 8px;
+            width: 90%; max-width: 350px; text-align: center; box-shadow: 0 8px 16px rgba(0,0,0,0.5);
+        }
+        .modal-content label { display: block; text-align: left; font-size: 12px; font-weight: bold; margin-bottom: 5px; text-transform: uppercase; color: #b5bac1; }
+
+        /* --- TOP NAV --- */
+        .top-nav { background: var(--bg-secondary); padding: 10px 16px; display: flex; align-items: center; justify-content: space-between; }
         .search-box { background: var(--bg-tertiary); border-radius: 4px; padding: 6px 12px; flex-grow: 1; margin: 0 15px; }
         .search-box input { background: transparent; border: none; color: white; width: 100%; outline: none; }
 
-        /* Main Menu Layout */
+        /* --- MAIN LAYOUT --- */
         .main-container { display: flex; flex-grow: 1; overflow: hidden; }
         .menu-sidebar { width: 240px; background: var(--bg-secondary); padding: 15px 10px; display: flex; flex-direction: column; gap: 8px; }
         .menu-item { text-decoration: none; color: #949ba4; padding: 10px; border-radius: 4px; display: flex; align-items: center; gap: 10px; font-weight: bold; }
         .menu-item:hover { background: #3f4147; color: white; }
 
-        /* Slide-Over Drawer */
+        /* --- ACCOUNT DRAWER --- */
         .drawer-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); z-index: 200; }
         .drawer {
             position: fixed; top: 0; right: -300px; width: 280px; height: 100%;
-            background: #232428; z-index: 201; transition: 0.3s ease; padding: 30px 15px; box-sizing: border-box;
-            overflow-y: auto;
+            background: #232428; z-index: 201; transition: 0.3s ease; padding: 30px 15px; box-sizing: border-box; overflow-y: auto;
         }
         .drawer.open { right: 0; }
 
-        /* Admin Tools Section (Hidden by Default) */
-        #adminSection { display: none; margin-top: 20px; padding-top: 15px; border-top: 1px solid #3f4147; text-align: left; }
-        .admin-btn { background: #23a55a; color: white; border: none; padding: 10px; border-radius: 4px; width: 100%; font-weight: bold; cursor: pointer; margin-top: 10px; }
-
-        /* General Styles */
-        .emoji-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 5px; max-height: 150px; overflow-y: auto; background: var(--bg-tertiary); padding: 8px; border-radius: 6px; margin-top: 10px; }
+        /* --- UI ELEMENTS --- */
+        .emoji-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 5px; max-height: 150px; overflow-y: auto; background: var(--bg-tertiary); padding: 8px; border-radius: 6px; margin: 10px 0; }
         .btn { background: var(--blurple); color: white; border: none; padding: 12px; border-radius: 4px; font-weight: bold; cursor: pointer; width: 100%; margin-top: 10px; }
-        .danger { background: var(--danger); }
+        .btn-danger { background: var(--danger); }
+        .btn-admin { background: var(--success); }
+        input[type="text"], input[type="password"] { width: 100%; padding: 12px; background: var(--bg-tertiary); border: none; color: white; margin-bottom: 15px; border-radius: 4px; box-sizing: border-box; }
         
-        #authModal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.95); z-index: 1000; justify-content: center; align-items: center; }
+        #adminSection { display: none; margin-top: 20px; padding-top: 15px; border-top: 1px solid #3f4147; }
     </style>
 </head>
 <body>
 
-    <!-- LOGIN MODAL -->
+    <!-- 1. LOGIN / REGISTER GATEKEEPER -->
     <div id="authModal">
-        <div style="background:var(--bg-secondary); padding:30px; border-radius:8px; text-align:center; width:300px;">
-            <h2 style="color:white;">Enter Shop</h2>
-            <input type="text" id="userInput" placeholder="Username" style="width:100%; padding:12px; background:var(--bg-tertiary); border:none; color:white; margin:10px 0; border-radius:4px;">
-            <button class="btn" onclick="signIn()">Enter</button>
+        <div class="modal-content">
+            <h2 id="authTitle" style="color:white; margin-top:0;">Welcome Back</h2>
+            <p id="authSubtitle" style="color:#b5bac1; font-size:14px; margin-bottom:20px;">Sign in to start trading!</p>
+            
+            <label>Username</label>
+            <input type="text" id="userInput">
+            
+            <label>Password</label>
+            <input type="password" id="passInput">
+            
+            <button id="authBtn" class="btn" onclick="handleAuth()">Log In</button>
+            
+            <p style="margin-top:15px; font-size:14px; color:#b5bac1;">
+                <span id="toggleText">Need an account?</span> 
+                <a href="#" id="toggleLink" onclick="toggleAuthMode()" style="color:#00a8fc; text-decoration:none;">Register</a>
+            </p>
         </div>
     </div>
 
+    <!-- 2. TOP NAVIGATION -->
     <nav class="top-nav">
         <div style="font-weight:bold; color:white;">🎒 MARKET</div>
         <div class="search-box"><input type="text" placeholder="Search items or people..."></div>
@@ -71,6 +93,7 @@
         </div>
     </nav>
 
+    <!-- 3. MAIN CONTENT -->
     <div class="main-container">
         <div class="menu-sidebar">
             <a href="chips.html" class="menu-item"><span>🍟</span> CHIPS</a>
@@ -79,13 +102,13 @@
         </div>
         <div style="flex-grow:1; display:flex; align-items:center; justify-content:center; text-align:center; padding:20px;">
             <div>
-                <h1 style="color:white; margin:0;"># welcome-to-market</h1>
-                <p style="color:#949ba4;">Select a channel on the left to start trading.</p>
+                <h1 style="color:white; margin:0;"># school-marketplace</h1>
+                <p style="color:#949ba4;">Select a category to start browsing.</p>
             </div>
         </div>
     </div>
 
-    <!-- ACCOUNT & ADMIN DRAWER -->
+    <!-- 4. ACCOUNT DRAWER -->
     <div id="overlay" class="drawer-overlay" onclick="toggleDrawer()"></div>
     <div id="drawer" class="drawer">
         <div style="text-align:center;">
@@ -95,51 +118,61 @@
             <p style="color:#b5bac1; font-size:12px; margin-top:15px;">Profile Emoji</p>
             <div id="emojiPicker" class="emoji-grid"></div>
 
-            <!-- Jonny's Admin Tools Inside the Window -->
+            <!-- Jonny's Admin Tools -->
             <div id="adminSection">
-                <p style="color:#23a55a; font-weight:bold; font-size:11px; text-transform:uppercase;">👑 Admin Tools</p>
-                <button class="admin-btn" onclick="promoteUser()">Promote to Seller</button>
+                <p style="color:var(--success); font-weight:bold; font-size:11px; text-transform:uppercase;">👑 Admin Tools</p>
+                <button class="btn btn-admin" onclick="promoteUser()">Promote to Seller</button>
             </div>
 
-            <button class="btn danger" onclick="signOut()">Log Out</button>
+            <button class="btn btn-danger" onclick="signOut()">Log Out</button>
         </div>
     </div>
 
     <script>
         const emojis = "😈💀💩👹🤬😡🤑😱😀😁😆🥹😅😂🤣🥲☺️😊😇🙂🙃😉😌😗😙😚😭😢😖🫡🫢🤭🫣🥴🤢🤮🤧😷🤒🤕🤐🐶🐱🐭🐹🐰🦊🐻🐼🐻‍❄️🐨🐯🦁🐮🐷🐽🐸🐵🙈🙉🙊🐒🐔🐧🐦🐤🐣🕸️🕷️🦗🦟🪳🪲🪰🐜🐞🐌🦋🐛🪱🐝🫎🦄🐴🐗🐺🦇🦉🦅🐦‍⬛🦆🪿🐥💫⭐🌟✨⚡️☄️💥🔥🌈☃️⛄🌬️🍏⚽🏀🏈⚾🥎🎾🏐🏉🥏🎱🪀🏓🏸🏒🏑🥍🏏🪃🥅⛳🪁🛝🏹🎣🤿🥊📱📲💻⌨️🖥️🖨️🖱️🖲️🕹️🗜️💽💾🧻🗯️".match(/./gu);
+        let isRegistering = false;
 
         window.onload = function() {
             checkAuth();
-            const picker = document.getElementById('emojiPicker');
-            emojis.forEach(e => {
-                let s = document.createElement('span'); s.innerText = e; s.style.cursor="pointer"; s.style.fontSize="22px";
-                s.onclick = () => { localStorage.setItem('m_emoji', e); updateUI(localStorage.getItem('m_user')); };
-                picker.appendChild(s);
-            });
+            setupEmojiPicker();
         };
 
-        function checkAuth() {
-            const u = localStorage.getItem('m_user');
-            if (!u) { document.getElementById('authModal').style.display='flex'; }
-            else { 
-                updateUI(u);
-                if (u.toLowerCase() === "jonny") document.getElementById('adminSection').style.display = 'block';
+        function toggleAuthMode() {
+            isRegistering = !isRegistering;
+            document.getElementById('authTitle').innerText = isRegistering ? "Create an account" : "Welcome Back";
+            document.getElementById('authBtn').innerText = isRegistering ? "Register" : "Log In";
+            document.getElementById('toggleText').innerText = isRegistering ? "Already have an account?" : "Need an account?";
+            document.getElementById('toggleLink').innerText = isRegistering ? "Log In" : "Register";
+        }
+
+        function handleAuth() {
+            const user = document.getElementById('userInput').value.trim();
+            const pass = document.getElementById('passInput').value.trim();
+
+            if (!user || !pass) return alert("Please fill in both fields!");
+
+            if (isRegistering) {
+                localStorage.setItem('m_user', user);
+                localStorage.setItem('m_pass', pass);
+                localStorage.setItem('m_emoji', '😎');
+                location.reload();
+            } else {
+                if (user === localStorage.getItem('m_user') && pass === localStorage.getItem('m_pass')) {
+                    location.reload();
+                } else {
+                    alert("Invalid username or password!");
+                }
             }
         }
 
-        function signIn() {
-            const n = document.getElementById('userInput').value.trim();
-            if (n.length < 2) return;
-            localStorage.setItem('m_user', n);
-            localStorage.setItem('m_emoji', '😎');
-            location.reload();
-        }
-
-        function promoteUser() {
-            const target = prompt("Username to Promote:");
-            const tier = prompt("Tier (1, 2, 3, max):");
-            const link = window.location.origin + window.location.pathname + "?role=seller&tier=" + tier;
-            alert("Send this link to " + target + " to unlock their " + tier + " slots:\n\n" + link);
+        function checkAuth() {
+            const u = localStorage.getItem('m_user');
+            if (!u) {
+                document.getElementById('authModal').style.display = 'flex';
+            } else {
+                updateUI(u);
+                if (u.toLowerCase() === "jonny") document.getElementById('adminSection').style.display = 'block';
+            }
         }
 
         function updateUI(u) {
@@ -150,11 +183,27 @@
             document.getElementById('drawerEmoji').innerText = e;
         }
 
+        function setupEmojiPicker() {
+            const p = document.getElementById('emojiPicker');
+            emojis.forEach(e => {
+                let s = document.createElement('span'); s.innerText = e; s.style.cursor="pointer"; s.style.fontSize="22px";
+                s.onclick = () => { localStorage.setItem('m_emoji', e); updateUI(localStorage.getItem('m_user')); };
+                p.appendChild(s);
+            });
+        }
+
         function toggleDrawer() {
             const d = document.getElementById('drawer');
             const o = document.getElementById('overlay');
             d.classList.toggle('open');
             o.style.display = d.classList.contains('open') ? 'block' : 'none';
+        }
+
+        function promoteUser() {
+            const target = prompt("User to Promote:");
+            const tier = prompt("Tier (1, 2, 3, max):");
+            const link = window.location.href + "?role=seller&tier=" + tier;
+            alert("Share this link with " + target + ":\n\n" + link);
         }
 
         function signOut() { localStorage.clear(); location.reload(); }
