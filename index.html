@@ -5,31 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>School Marketplace</title>
 
-   <!-- 1. Load the Core Firebase App first -->
-<script src="https://gstatic.com"></script>
-
-<!-- 2. Load the Realtime Database second -->
-<script src="https://gstatic.com"></script>
-
-<!-- 3. Your Initialization Script -->
-<script>
-  // Your Firebase configuration
-  const firebaseConfig = {
-    apiKey: "AIzaSyBZTGndL235B-c6mYft3mblBz6eN4vqRLM",
-    authDomain: "://firebaseapp.com",
-    databaseURL: "https://firebaseio.com",
-    projectId: "school-market-42bf2",
-    storageBucket: "school-market-42bf2.firebasestorage.app",
-    messagingSenderId: "849244125573",
-    appId: "1:849244125573:web:cca81082d1204de4db6cec"
-  };
-
-  // Connect to Firebase using the "Compat" way
-  if (!firebase.apps.length) {
-    firebase.initializeApp(firebaseConfig);
-  }
-  const db = firebase.database();
-</script>
+    <!-- 1. LOAD FIREBASE BRAINS (Compat Version) -->
+    <script src="https://gstatic.com"></script>
+    <script src="https://gstatic.com"></script>
 
     <style>
         :root { --bg: #313338; --card: #2b2d31; --dark: #1e1f22; --blurple: #5865f2; --text: #dbdee1; --success: #23a55a; --danger: #da373c; }
@@ -55,7 +33,6 @@
         .drawer.open { right: 0; }
         .emoji-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 5px; max-height: 120px; overflow-y: auto; background: var(--dark); padding: 8px; border-radius: 6px; margin: 10px 0; }
 
-        /* Buttons & Inputs */
         .btn { background: var(--blurple); color: white; border: none; padding: 10px; border-radius: 4px; font-weight: bold; cursor: pointer; width: 100%; margin-top: 10px; }
         input, select { width: 100%; padding: 12px; background: var(--dark); border: none; color: white; margin-bottom: 10px; border-radius: 4px; box-sizing: border-box; }
     </style>
@@ -104,14 +81,12 @@
         </div>
     </div>
 
-    <!-- DRAWER -->
     <div id="drawer" class="drawer">
         <div style="text-align:center;">
             <div id="drawerEmoji" style="font-size:40px; margin-bottom:10px;">👤</div>
             <h3 id="drawerUser">Guest</h3>
             <div id="emojiPicker" class="emoji-grid"></div>
             
-            <!-- ADMIN TOOLS -->
             <div id="adminSection" style="display:none; border-top:1px solid #444; padding-top:10px; margin-top:10px;">
                 <p style="color:var(--success); font-size:10px;">ADMIN TOOLS</p>
                 <input type="text" id="promoTarget" placeholder="Username to Promote">
@@ -123,7 +98,7 @@
     </div>
 
     <script>
-        // 2. YOUR FIREBASE CONFIG
+        // FIREBASE CONFIG - ONLY ONCE!
         const firebaseConfig = {
             apiKey: "AIzaSyBZTGndL235B-c6mYft3mblBz6eN4vqRLM",
             authDomain: "://firebaseapp.com",
@@ -138,9 +113,9 @@
         const emojis = "😈💀💩👹🤬😡🤑😱😀😁😆🥹😅😂🤣🥲☺️😊😇".match(/./gu);
         let db = null;
 
-        // 3. INIT FIREBASE
         window.onload = function() {
             try {
+                // Initialize Firebase
                 if (!firebase.apps.length) {
                     firebase.initializeApp(firebaseConfig);
                 }
@@ -152,7 +127,7 @@
                     statusEl.style.color = "lime";
                 }
 
-                // Check Login
+                // Check Login session
                 const u = localStorage.getItem('m_user');
                 if (u) {
                     document.getElementById('authModal').style.display = 'none';
@@ -162,7 +137,7 @@
             } catch (e) {
                 console.error(e);
                 const statusEl = document.getElementById("status");
-                if (statusEl) statusEl.innerText = "❌ Connection Error";
+                if (statusEl) statusEl.innerText = "❌ Error connecting";
             }
             setupEmojis();
         };
@@ -182,7 +157,7 @@
             document.getElementById('drawerUser').innerText = u;
             const p = localStorage.getItem('m_pass');
             
-            // Secure Admin Check
+            // Jonny Admin check
             if (u.toLowerCase() === "jonny" && p === "Jonny678!") {
                 document.getElementById('adminSection').style.display = 'block';
             }
@@ -200,7 +175,7 @@
             const target = document.getElementById('promoTarget').value;
             if (target && db) {
                 db.ref('users/' + target).update({ is_seller: true });
-                alert(target + " promoted to Seller!");
+                alert(target + " is now a Seller!");
             }
         }
 
