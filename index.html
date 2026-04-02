@@ -3,9 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>School Marketplace</title>
+    <title>School Market Menu</title>
     <style>
-        /* Discord Theme Colors */
         :root {
             --bg-dark: #313338;
             --bg-secondary: #2b2d31;
@@ -17,120 +16,156 @@
 
         body { 
             background-color: var(--bg-dark); color: var(--text); font-family: sans-serif; 
-            margin: 0; display: flex; flex-direction: column; align-items: center; min-height: 100vh;
+            margin: 0; display: flex; flex-direction: column; height: 100vh; overflow: hidden;
         }
 
-        /* Forced Auth Modal */
+        /* 1. Auth Gatekeeper */
         #authModal {
             display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: rgba(0,0,0,0.95); z-index: 1000; justify-content: center; align-items: center;
         }
         .modal-content {
-            background-color: var(--bg-secondary); padding: 30px; border-radius: 8px;
-            width: 90%; max-width: 400px; text-align: center;
-        }
-        input {
-            width: 100%; padding: 12px; background: var(--bg-tertiary); border: none;
-            border-radius: 4px; color: white; margin: 10px 0; box-sizing: border-box;
+            background-color: var(--bg-secondary); padding: 32px; border-radius: 8px;
+            width: 90%; max-width: 400px; text-align: center; box-shadow: 0 8px 16px rgba(0,0,0,0.3);
         }
 
-        /* Top Nav */
+        /* 2. Top Navigation Bar */
         .top-nav {
-            width: 100%; background: var(--bg-secondary); padding: 10px 20px;
+            background: var(--bg-secondary); padding: 12px 16px;
             display: flex; align-items: center; justify-content: space-between;
-            position: fixed; top: 0; z-index: 100; box-sizing: border-box;
+            border-bottom: 1px solid rgba(0,0,0,0.2);
+        }
+        .search-box {
+            background: var(--bg-tertiary); border-radius: 4px; padding: 6px 12px;
+            flex-grow: 1; margin: 0 15px; display: flex; align-items: center;
+        }
+        .search-box input {
+            background: transparent; border: none; color: white; width: 100%; outline: none;
         }
 
-        /* Slide Drawer */
+        /* 3. Main Menu Layout */
+        .main-container { display: flex; flex-grow: 1; overflow: hidden; }
+        
+        /* The Category Sidebar (Menu) */
+        .menu-sidebar {
+            width: 240px; background: var(--bg-secondary); padding: 20px 10px;
+            display: flex; flex-direction: column; gap: 8px;
+        }
+        .menu-item {
+            text-decoration: none; color: #949ba4; padding: 10px; border-radius: 4px;
+            display: flex; align-items: center; gap: 10px; font-weight: bold; transition: 0.2s;
+        }
+        .menu-item:hover, .menu-item.active { background: #3f4147; color: white; }
+        .menu-item span { font-size: 20px; }
+
+        /* 4. Slide Drawer & Account */
         .drawer-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); z-index: 200; }
         .drawer {
             position: fixed; top: 0; right: -300px; width: 280px; height: 100%;
             background: #232428; z-index: 201; transition: 0.3s; padding: 40px 20px; box-sizing: border-box;
         }
         .drawer.open { right: 0; }
+        .emoji-grid {
+            display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px;
+            max-height: 200px; overflow-y: auto; background: var(--bg-tertiary);
+            padding: 10px; border-radius: 8px; margin-top: 15px;
+        }
 
-        /* General Styles */
-        .primary-btn { width: 100%; background: var(--blurple); color: white; padding: 12px; border: none; border-radius: 4px; font-weight: bold; cursor: pointer; }
-        .logout-btn { width: 100%; background: var(--danger); color: white; border: none; padding: 12px; border-radius: 4px; font-weight: bold; cursor: pointer; margin-top: 20px; }
-        .content { margin-top: 100px; text-align: center; }
-        .category-container { display: flex; gap: 20px; flex-wrap: wrap; justify-content: center; padding: 20px; }
-        .cat-box { background: var(--bg-secondary); width: 200px; height: 200px; border-radius: 12px; display: flex; flex-direction: column; align-items: center; justify-content: center; text-decoration: none; color: white; border: 2px solid transparent; }
-        .cat-box:hover { border-color: var(--blurple); }
+        /* Buttons & Inputs */
+        .btn { background: var(--blurple); color: white; border: none; padding: 12px; border-radius: 4px; font-weight: bold; cursor: pointer; }
+        .btn-danger { background: var(--danger); }
+        input[type="text"], input[type="password"] { width: 100%; padding: 12px; background: var(--bg-tertiary); border: none; border-radius: 4px; color: white; margin: 10px 0; box-sizing: border-box; }
+
+        /* Hide for mobile layout */
+        @media (max-width: 600px) { .menu-sidebar { width: 70px; } .menu-text { display: none; } }
     </style>
 </head>
 <body>
 
-    <!-- 1. THE GATEKEEPER MODAL -->
+    <!-- GATEKEEPER -->
     <div id="authModal">
         <div class="modal-content">
-            <h2 style="color:white;">Welcome Back!</h2>
-            <p>Please sign in to access the shop.</p>
-            <input type="text" id="userInput" placeholder="Username">
+            <h2 style="color:white; margin-top:0;"># welcome-to-market</h2>
+            <input type="text" id="userInput" placeholder="Choose a Username">
             <input type="password" placeholder="Password">
-            <button class="primary-btn" onclick="signIn()">Sign In / Create Account</button>
+            <button class="btn" style="width:100%;" onclick="signIn()">Enter Shop</button>
         </div>
     </div>
 
-    <!-- 2. NAVIGATION -->
+    <!-- TOP BAR -->
     <nav class="top-nav">
-        <div style="font-weight:bold; color:white;">🎒 School Market</div>
-        <div onclick="toggleDrawer()" style="display:flex; align-items:center; gap:10px; cursor:pointer;">
-            <div id="navUser">Guest</div>
-            <div id="navEmoji" style="background:var(--blurple); width:35px; height:35px; border-radius:50%; display:flex; align-items:center; justify-content:center;">👤</div>
+        <div style="font-weight:bold; color:white;">🎒 MARKET</div>
+        <div class="search-box">
+            <input type="text" placeholder="Search items or people...">
+        </div>
+        <div onclick="toggleDrawer()" style="cursor:pointer; display:flex; align-items:center; gap:8px;">
+            <div id="navUser" style="font-size:12px; font-weight:bold;">Guest</div>
+            <div id="navEmoji" style="background:var(--blurple); width:32px; height:32px; border-radius:50%; display:flex; align-items:center; justify-content:center;">👤</div>
         </div>
     </nav>
 
-    <!-- 3. SLIDE-OVER DRAWER -->
-    <div id="overlay" class="drawer-overlay" onclick="toggleDrawer()"></div>
-    <div id="drawer" class="drawer">
-        <div style="text-align:center;">
-            <div id="drawerEmoji" style="font-size:40px; margin-bottom:10px;">👤</div>
-            <h2 id="drawerUser" style="color:white;">Guest</h2>
-            <button class="logout-btn" onclick="signOut()">Log Out</button>
+    <div class="main-container">
+        <!-- SIDE MENU -->
+        <div class="menu-sidebar">
+            <a href="chips.html" class="menu-item"><span>🍟</span> <div class="menu-text">CHIPS</div></a>
+            <a href="soda.html" class="menu-item"><span>🥤</span> <div class="menu-text">SODA</div></a>
+            <a href="fidgets.html" class="menu-item"><span>🕹️</span> <div class="menu-text">FIDGETS</div></a>
+        </div>
+
+        <!-- MAIN AREA -->
+        <div style="flex-grow:1; display:flex; align-items:center; justify-content:center; text-align:center; padding:20px;">
+            <div>
+                <h1 style="color:white; margin:0;"># school-marketplace</h1>
+                <p style="color:#949ba4;">Select a category on the left to start trading.</p>
+            </div>
         </div>
     </div>
 
-    <!-- 4. CONTENT -->
-    <div class="content">
-        <h1># select-category</h1>
-        <div class="category-container">
-            <a href="chips.html" class="cat-box"><span style="font-size:50px;">🍟</span><strong>CHIPS</strong></a>
-            <a href="soda.html" class="cat-box"><span style="font-size:50px;">🥤</span><strong>SODA</strong></a>
-            <a href="fidgets.html" class="cat-box"><span style="font-size:50px;">🕹️</span><strong>FIDGETS</strong></a>
+    <!-- ACCOUNT DRAWER -->
+    <div id="overlay" class="drawer-overlay" onclick="toggleDrawer()"></div>
+    <div id="drawer" class="drawer">
+        <div style="text-align:center;">
+            <div id="drawerEmoji" style="font-size:40px; margin:0 auto 10px; background:var(--blurple); width:70px; height:70px; border-radius:50%; display:flex; align-items:center; justify-content:center;">👤</div>
+            <h2 id="drawerUser" style="color:white; margin:0;">Guest</h2>
+            <p style="color:#b5bac1; font-size:12px;">Tap an emoji to update profile</p>
+            <div id="emojiPicker" class="emoji-grid"></div>
+            <button class="btn btn-danger" style="width:100%; margin-top:20px;" onclick="signOut()">Log Out</button>
         </div>
     </div>
 
     <script>
-        // Check login immediately
+        const emojis = "😈💀💩👹🤬😡🤑😱😀😁😆🥹😅😂🤣🥲☺️😊😇🙂🙃😉😌😗😙😚😭😢😖🫡🫢🤭🫣🥴🤢🤮🤧😷🤒🤕🤐🐶🐱🐭🐹🐰🦊🐻🐼🐻‍❄️🐨🐯🦁🐮🐷🐽🐸🐵🙈🙉🙊🐒🐔🐧🐦🐤🐣🕸️🕷️🦗🦟🪳🪲🪰🐜🐞🐌🦋🐛🪱🐝🫎🦄🐴🐗🐺🦇🦉🦅🐦‍⬛🦆🪿🐥💫⭐🌟✨⚡️☄️💥🔥🌈☃️⛄🌬️🍏⚽🏀🏈⚾🥎🎾🏐🏉🥏🎱🪀🏓🏸🏒🏑🥍🏏🪃🥅⛳🪁🛝🏹🎣🤿🥊📱📲💻⌨️🖥️🖨️🖱️🖲️🕹️🗜️💽💾🧻🗯️".match(/./gu);
+
+        window.onload = function() {
+            checkAuth();
+            const picker = document.getElementById('emojiPicker');
+            emojis.forEach(e => {
+                let s = document.createElement('span'); s.innerText = e; s.style.cursor="pointer"; s.style.fontSize="22px";
+                s.onclick = () => { localStorage.setItem('m_emoji', e); updateUI(localStorage.getItem('m_user')); };
+                picker.appendChild(s);
+            });
+        };
+
         function checkAuth() {
-            const user = localStorage.getItem('market_user');
-            if (!user) {
-                document.getElementById('authModal').style.display = 'flex';
-                document.body.style.overflow = 'hidden';
-            } else {
-                document.getElementById('authModal').style.display = 'none';
-                document.body.style.overflow = 'auto';
-                updateUI(user);
-            }
+            const u = localStorage.getItem('m_user');
+            if (!u) { document.getElementById('authModal').style.display='flex'; }
+            else { updateUI(u); }
         }
 
         function signIn() {
-            const name = document.getElementById('userInput').value.trim();
-            if (name.length < 2) {
-                alert("Enter a username!");
-                return;
-            }
-            localStorage.setItem('market_user', name);
-            localStorage.setItem('market_emoji', '😎');
-            location.reload(); // Refresh to apply changes
+            const n = document.getElementById('userInput').value.trim();
+            if (n.length < 2) return alert("Username too short!");
+            localStorage.setItem('m_user', n);
+            localStorage.setItem('m_emoji', '😎');
+            location.reload();
         }
 
-        function updateUI(user) {
-            const emoji = localStorage.getItem('market_emoji') || '👤';
-            document.getElementById('navUser').innerText = user;
-            document.getElementById('drawerUser').innerText = user;
-            document.getElementById('navEmoji').innerText = emoji;
-            document.getElementById('drawerEmoji').innerText = emoji;
+        function updateUI(u) {
+            const e = localStorage.getItem('m_emoji') || '👤';
+            document.getElementById('navUser').innerText = u;
+            document.getElementById('drawerUser').innerText = u;
+            document.getElementById('navEmoji').innerText = e;
+            document.getElementById('drawerEmoji').innerText = e;
         }
 
         function toggleDrawer() {
@@ -140,13 +175,7 @@
             o.style.display = d.classList.contains('open') ? 'block' : 'none';
         }
 
-        function signOut() {
-            localStorage.removeItem('market_user');
-            localStorage.removeItem('market_emoji');
-            location.reload(); // Refresh will trigger checkAuth() and show login
-        }
-
-        window.onload = checkAuth;
+        function signOut() { localStorage.clear(); location.reload(); }
     </script>
 </body>
 </html>
