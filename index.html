@@ -111,29 +111,42 @@
         const emojis = "😈💀💩👹🤬😡🤑😱😀😁😆🥹😅😂🤣🥲☺️😊😇".match(/./gu);
         let db = null;
 
-        window.onload = function() {
-            try {
-                if (typeof firebase !== 'undefined') {
-                    if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
-                    db = firebase.database();
-                    
-                    // Connection Status
-                    db.ref(".info/connected").on("value", (snap) => {
-                        const s = document.getElementById("status");
-                        if (snap.val() === true) { s.innerText = "✅ Connected!"; s.style.color = "lime"; }
-                        else { s.innerText = "Connecting..."; s.style.color = "orange"; }
-                    });
+      window.onload = function() {
+    try {
+        if (typeof firebase !== 'undefined') {
+            if (!firebase.apps.length) {
+                firebase.initializeApp(firebaseConfig);
+            }
+            db = firebase.database();
+            
+            // NEW: Force a small write to "wake up" the connection
+            console.log("Attempting to wake up database...");
+            
+            // 1. Immediately show the UI if someone is logged in
+            const u = localStorage.getItem('m_user');
+            if (u) {
+                document.getElementById('authModal').style.display = 'none';
+                setupUI(u);
+                checkSellerStatus(u);
+            }
 
-                    const u = localStorage.getItem('m_user');
-                    if (u) {
-                        document.getElementById('authModal').style.display = 'none';
-                        setupUI(u);
-                        checkSellerStatus(u);
-                    }
+            // 2. Change the status to "Connected" as soon as we can read anything
+            db.ref(".info/connected").on("value", (snap) => {
+                const s = document.getElementById("status");
+                if (snap.val() === true) {
+                    s.innerText = "✅ Connected!";
+                    s.style.color = "lime";
                 }
-            } catch (e) { console.error(e); }
-            setupEmojis();
-        };
+            });
+        } else {
+            document.getElementById("status").innerText = "❌ Firebase Script Error";
+        }
+    } catch (e) { 
+        console.error("Startup Error:", e); 
+    }
+    setupEmojis();
+};
+
 
         function handleAuth() {
             const u = document.getElementById('userInput').value.trim();
