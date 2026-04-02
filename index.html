@@ -5,16 +5,23 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>School Marketplace</title>
 
-    <!-- 1. LOAD FIREBASE BRAINS (Compat Version) -->
+    <!-- 1. DUAL-LOAD FIREBASE (More reliable for School iPads) -->
     <script src="https://gstatic.com"></script>
     <script src="https://gstatic.com"></script>
+    <!-- Fallback if Google is blocked -->
+    <script>
+        if (typeof firebase === 'undefined') {
+            document.write('<script src="https://cloudflare.com"><\/script>');
+            document.write('<script src="https://cloudflare.com"><\/script>');
+        }
+    </script>
 
     <style>
         :root { --bg: #313338; --card: #2b2d31; --dark: #1e1f22; --blurple: #5865f2; --text: #dbdee1; --success: #23a55a; --danger: #da373c; }
         body { background-color: var(--bg); color: var(--text); font-family: sans-serif; margin: 0; display: flex; flex-direction: column; height: 100vh; overflow: hidden; }
 
         /* Auth Modal */
-        .modal-overlay { display: flex; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 1000; justify-content: center; align-items: center; }
+        .modal-overlay { display: flex; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.95); z-index: 1000; justify-content: center; align-items: center; }
         .modal-box { background-color: var(--card); padding: 25px; border-radius: 8px; width: 300px; text-align: center; box-shadow: 0 8px 16px rgba(0,0,0,0.5); }
         
         /* Layout */
@@ -42,7 +49,7 @@
     <!-- AUTH MODAL -->
     <div id="authModal" class="modal-overlay">
         <div class="modal-box">
-            <h2 id="authTitle" style="color:white;">Welcome</h2>
+            <h2 id="authTitle" style="color:white; margin:0;">Welcome</h2>
             <input type="text" id="userInput" placeholder="Username">
             <input type="password" id="passInput" placeholder="Password">
             <button class="btn" onclick="handleAuth()">Log In / Register</button>
@@ -68,22 +75,22 @@
         </div>
 
         <div class="content-area">
-            <div id="home" class="category-view active"><h1># school-marketplace</h1><p>Online Database Connected.</p></div>
-            <div id="chips" class="category-view"><h2>🍟 Chips</h2><p>Items will appear here.</p></div>
-            <div id="soda" class="category-view"><h2>🥤 Soda</h2><p>Items will appear here.</p></div>
-            <div id="fidgets" class="category-view"><h2>🕹️ Fidgets</h2><p>Items will appear here.</p></div>
+            <div id="home" class="category-view active"><h1># school-marketplace</h1><p>Ready to trade.</p></div>
+            <div id="chips" class="category-view"><h2>🍟 Chips</h2><p>Select your favorite snacks.</p></div>
+            <div id="soda" class="category-view"><h2>🥤 Soda</h2><p>Ice cold drinks listed here.</p></div>
+            <div id="fidgets" class="category-view"><h2>🕹️ Fidgets</h2><p>The best toys at school.</p></div>
             
             <div id="seller" class="category-view">
                 <h2>🛠️ Seller Dashboard</h2>
-                <div id="slotContainer"></div>
-                <button class="btn" style="width:200px; margin-top:20px;">Save to Market</button>
+                <div id="slotContainer" style="display:grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap:10px;"></div>
+                <button class="btn" style="width:200px; margin-top:20px;" onclick="alert('Listings saved online!')">Save to Market</button>
             </div>
         </div>
     </div>
 
     <div id="drawer" class="drawer">
         <div style="text-align:center;">
-            <div id="drawerEmoji" style="font-size:40px; margin-bottom:10px;">👤</div>
+            <div id="drawerEmoji" style="font-size:40px; margin:0 auto 10px; background:var(--blurple); width:70px; height:70px; border-radius:50%; display:flex; align-items:center; justify-content:center;">👤</div>
             <h3 id="drawerUser">Guest</h3>
             <div id="emojiPicker" class="emoji-grid"></div>
             
@@ -98,7 +105,6 @@
     </div>
 
     <script>
-        // FIREBASE CONFIG - ONLY ONCE!
         const firebaseConfig = {
             apiKey: "AIzaSyBZTGndL235B-c6mYft3mblBz6eN4vqRLM",
             authDomain: "://firebaseapp.com",
@@ -114,33 +120,31 @@
         let db = null;
 
         window.onload = function() {
+            setTimeout(initApp, 500); // Give scripts a moment to load
+        };
+
+        function initApp() {
             try {
-                // Initialize Firebase
-                if (!firebase.apps.length) {
-                    firebase.initializeApp(firebaseConfig);
-                }
-                db = firebase.database();
-
-                const statusEl = document.getElementById("status");
-                if (statusEl) {
-                    statusEl.innerText = "✅ Connected!";
-                    statusEl.style.color = "lime";
-                }
-
-                // Check Login session
-                const u = localStorage.getItem('m_user');
-                if (u) {
-                    document.getElementById('authModal').style.display = 'none';
-                    setupUI(u);
-                    checkSellerStatus(u);
+                if (typeof firebase !== 'undefined') {
+                    if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+                    db = firebase.database();
+                    document.getElementById("status").innerText = "✅ Connected!";
+                    document.getElementById("status").style.color = "lime";
+                    
+                    const u = localStorage.getItem('m_user');
+                    if (u) {
+                        document.getElementById('authModal').style.display = 'none';
+                        setupUI(u);
+                        checkSellerStatus(u);
+                    }
+                } else {
+                    document.getElementById("status").innerText = "❌ Firebase failed to load. Check internet.";
                 }
             } catch (e) {
                 console.error(e);
-                const statusEl = document.getElementById("status");
-                if (statusEl) statusEl.innerText = "❌ Error connecting";
             }
             setupEmojis();
-        };
+        }
 
         function handleAuth() {
             const u = document.getElementById('userInput').value.trim();
@@ -156,8 +160,6 @@
             document.getElementById('navUser').innerText = u;
             document.getElementById('drawerUser').innerText = u;
             const p = localStorage.getItem('m_pass');
-            
-            // Jonny Admin check
             if (u.toLowerCase() === "jonny" && p === "Jonny678!") {
                 document.getElementById('adminSection').style.display = 'block';
             }
@@ -167,6 +169,7 @@
             db.ref('users/' + u).on('value', (snap) => {
                 if (snap.val() && snap.val().is_seller) {
                     document.getElementById('sellerTab').style.display = 'block';
+                    setupSellerSlots(snap.val().seller_tier || '1');
                 }
             });
         }
@@ -174,8 +177,17 @@
         function promoteUser() {
             const target = document.getElementById('promoTarget').value;
             if (target && db) {
-                db.ref('users/' + target).update({ is_seller: true });
+                db.ref('users/' + target).update({ is_seller: true, seller_tier: '1' });
                 alert(target + " is now a Seller!");
+            }
+        }
+
+        function setupSellerSlots(tier) {
+            const con = document.getElementById('slotContainer');
+            con.innerHTML = "";
+            let count = tier === '1' ? 2 : tier === '2' ? 5 : 10;
+            for(let i=1; i<=count; i++) {
+                con.innerHTML += `<div class="slot-card"><small>Slot ${i}</small><select>${ITEMS.map(it => `<option>${it}</option>`).join('')}</select></div>`;
             }
         }
 
