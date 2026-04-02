@@ -1,168 +1,58 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>School Market Menu</title>
-    <style>
-        :root {
-            --bg-dark: #313338;
-            --bg-secondary: #2b2d31;
-            --bg-tertiary: #1e1f22;
-            --blurple: #5865f2;
-            --text: #dbdee1;
-            --danger: #da373c;
-        }
+<script>
+    // HARDCODED ADMIN
+    const ADMIN_USER = "Jonny";
+    
+    // ITEM DATABASE
+    const MARKET_ITEMS = [
+        "Coca Cola", "Diet Coke", "Monster Energy", "Doritos Cool Ranch", 
+        "Doritos Nachos", "Hot Fries", "Takis", "Lays Classic", 
+        "Barbeque Lays", "Keyboard Fidget", "Poppets", "Clickers"
+    ];
 
-        body { 
-            background-color: var(--bg-dark); color: var(--text); font-family: sans-serif; 
-            margin: 0; display: flex; flex-direction: column; height: 100vh; overflow: hidden;
-        }
-
-        /* 1. Auth Gatekeeper */
-        #authModal {
-            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.95); z-index: 1000; justify-content: center; align-items: center;
-        }
-        .modal-content {
-            background-color: var(--bg-secondary); padding: 25px; border-radius: 8px;
-            width: 85%; max-width: 350px; text-align: center;
-        }
-
-        /* 2. Top Navigation Bar */
-        .top-nav {
-            background: var(--bg-secondary); padding: 10px 16px;
-            display: flex; align-items: center; justify-content: space-between;
-        }
-        .search-box {
-            background: var(--bg-tertiary); border-radius: 4px; padding: 6px 12px;
-            flex-grow: 1; margin: 0 10px; display: flex; align-items: center;
-        }
-        .search-box input { background: transparent; border: none; color: white; width: 100%; outline: none; }
-
-        /* 3. Main Menu Layout */
-        .main-container { display: flex; flex-grow: 1; overflow: hidden; }
-        .menu-sidebar { width: 220px; background: var(--bg-secondary); padding: 15px 8px; display: flex; flex-direction: column; gap: 5px; }
-        .menu-item { text-decoration: none; color: #949ba4; padding: 10px; border-radius: 4px; display: flex; align-items: center; gap: 10px; font-weight: bold; }
-        .menu-item:active { background: #3f4147; color: white; }
-
-        /* 4. Slide Drawer (Optimized) */
-        .drawer-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 200; }
-        .drawer {
-            position: fixed; top: 0; right: -300px; width: 260px; height: 100%;
-            background: #232428; z-index: 201; transition: transform 0.25s ease-out; /* Smoother animation */
-            padding: 30px 15px; box-sizing: border-box;
-        }
-        .drawer.open { transform: translateX(-300px); } /* Hardware accelerated transform */
+    window.onload = function() {
+        checkAuth();
+        const user = localStorage.getItem('m_user');
         
-        .emoji-grid {
-            display: grid; grid-template-columns: repeat(5, 1fr); gap: 5px;
-            max-height: 180px; overflow-y: auto; background: var(--bg-tertiary);
-            padding: 8px; border-radius: 6px; margin-top: 10px;
-            -webkit-overflow-scrolling: touch; /* Smooth scrolling for iPad */
+        // Show Admin Panel if user is Jonny
+        if (user === ADMIN_USER) {
+            document.getElementById('adminPanel').style.display = 'block';
         }
-
-        .btn { background: var(--blurple); color: white; border: none; padding: 12px; border-radius: 4px; font-weight: bold; width: 100%; margin-top: 10px; }
-        input { width: 100%; padding: 12px; background: var(--bg-tertiary); border: none; border-radius: 4px; color: white; margin: 8px 0; box-sizing: border-box; }
         
-        @media (max-width: 600px) { .menu-sidebar { width: 60px; } .menu-text { display: none; } }
-    </style>
-</head>
-<body>
-
-    <div id="authModal">
-        <div class="modal-content">
-            <h2 style="color:white; margin-top:0;">Login</h2>
-            <input type="text" id="userInput" placeholder="Username">
-            <button class="btn" onclick="signIn()">Enter Shop</button>
-        </div>
-    </div>
-
-    <nav class="top-nav">
-        <div style="font-weight:bold; color:white;">🎒 MARKET</div>
-        <div class="search-box"><input type="text" placeholder="Search..."></div>
-        <div onclick="toggleDrawer()" style="cursor:pointer; display:flex; align-items:center; gap:8px;">
-            <div id="navEmoji" style="background:var(--blurple); width:32px; height:32px; border-radius:50%; display:flex; align-items:center; justify-content:center;">👤</div>
-        </div>
-    </nav>
-
-    <div class="main-container">
-        <div class="menu-sidebar">
-            <a href="chips.html" class="menu-item"><span>🍟</span> <div class="menu-text">CHIPS</div></a>
-            <a href="soda.html" class="menu-item"><span>🥤</span> <div class="menu-text">SODA</div></a>
-            <a href="fidgets.html" class="menu-item"><span>🕹️</span> <div class="menu-text">FIDGETS</div></a>
-        </div>
-        <div style="flex-grow:1; display:flex; align-items:center; justify-content:center; text-align:center;">
-            <div>
-                <h1 style="color:white;"># welcome</h1>
-                <p style="color:#949ba4;">Choose a category on the left.</p>
-            </div>
-        </div>
-    </div>
-
-    <div id="overlay" class="drawer-overlay" onclick="toggleDrawer()"></div>
-    <div id="drawer" class="drawer">
-        <div style="text-align:center;">
-            <div id="drawerEmoji" style="font-size:35px; margin:0 auto 10px; background:var(--blurple); width:65px; height:65px; border-radius:50%; display:flex; align-items:center; justify-content:center;">👤</div>
-            <h2 id="drawerUser" style="color:white; margin:0; font-size:18px;">Guest</h2>
-            <div id="emojiPicker" class="emoji-grid"></div>
-            <button class="btn" style="background:var(--danger);" onclick="signOut()">Log Out</button>
-        </div>
-    </div>
-
-    <script>
-        const emojis = "😈💀💩👹🤬😡🤑😱😀😁😆🥹😅😂🤣🥲☺️😊😇🙂🙃😉😌😗😙😚😭😢😖🫡🫢🤭🫣🥴🤢🤮🤧😷🤒🤕🤐🐶🐱🐭🐹🐰🦊🐻🐼🐻‍❄️🐨🐯🦁🐮🐷🐽🐸🐵🙈🙉🙊🐒🐔🐧🐦🐤🐣🕸️🕷️🦗🦟🪳🪲🪰🐜🐞🐌🦋🐛🪱🐝🫎🦄🐴🐗🐺🦇🦉🦅🐦‍⬛🦆🪿🐥💫⭐🌟✨⚡️☄️💥🔥🌈☃️⛄🌬️🍏⚽🏀🏈⚾🥎🎾🏐🏉🥏🎱🪀🏓🏸🏒🏑🥍🏏🪃🥅⛳🪁🛝🏹🎣🤿🥊📱📲💻⌨️🖥️🖨️🖱️🖲️🕹️🗜️💽💾🧻🗯️".match(/./gu);
-        let pickerLoaded = false;
-
-        window.onload = checkAuth;
-
-        function checkAuth() {
-            const u = localStorage.getItem('m_user');
-            if (!u) { document.getElementById('authModal').style.display='flex'; }
-            else { updateUI(u); }
+        // Check if user has "Seller" link (Simulated via URL)
+        const urlParams = new URLSearchParams(window.location.search);
+        if (urlParams.get('role') === 'seller') {
+            document.getElementById('sellerMenu').style.display = 'block';
+            setupSellerSlots(urlParams.get('tier'));
         }
+    };
 
-        // ONLY LOAD EMOJIS WHEN MENU IS OPENED (Saves resources)
-        function toggleDrawer() {
-            const d = document.getElementById('drawer');
-            const o = document.getElementById('overlay');
-            d.classList.toggle('open');
-            o.style.display = d.classList.contains('open') ? 'block' : 'none';
-            
-            if (d.classList.contains('open') && !pickerLoaded) {
-                loadEmojiPicker();
-            }
+    function setupSellerSlots(tier) {
+        let slots = 0;
+        if (tier === '1') slots = 2;
+        if (tier === '2') slots = 5;
+        if (tier === '3') slots = 10;
+        if (tier === 'max') slots = 20;
+
+        const container = document.getElementById('slotContainer');
+        for (let i = 1; i <= slots; i++) {
+            container.innerHTML += `
+                <div class="slot-card">
+                    <h4>Slot ${i}</h4>
+                    <select id="slot-${i}" onchange="updateMarket(${i})">
+                        <option>Select Item...</option>
+                        ${MARKET_ITEMS.map(item => `<option>${item}</option>`).join('')}
+                    </select>
+                </div>`;
         }
+    }
 
-        function loadEmojiPicker() {
-            const picker = document.getElementById('emojiPicker');
-            const fragment = document.createDocumentFragment(); // Faster rendering
-            emojis.forEach(e => {
-                let s = document.createElement('span'); 
-                s.innerText = e; s.style.cursor="pointer"; s.style.padding="5px";
-                s.onclick = () => { localStorage.setItem('m_emoji', e); updateUI(localStorage.getItem('m_user')); };
-                fragment.appendChild(s);
-            });
-            picker.appendChild(fragment);
-            pickerLoaded = true;
-        }
-
-        function signIn() {
-            const n = document.getElementById('userInput').value.trim();
-            if (n.length < 2) return;
-            localStorage.setItem('m_user', n);
-            localStorage.setItem('m_emoji', '😎');
-            location.reload();
-        }
-
-        function updateUI(u) {
-            const e = localStorage.getItem('m_emoji') || '👤';
-            document.getElementById('drawerUser').innerText = u;
-            document.getElementById('navEmoji').innerText = e;
-            document.getElementById('drawerEmoji').innerText = e;
-        }
-
-        function signOut() { localStorage.clear(); location.reload(); }
-    </script>
-</body>
-</html>
+    // Function for Jonny to "Promote"
+    function promoteUser() {
+        const target = prompt("Enter Username to Promote:");
+        const tier = prompt("Enter Tier (1, 2, 3, or max):");
+        const sellerLink = window.location.href + "?role=seller&tier=" + tier;
+        
+        // In a real app, you'd email this. Here, we'll just alert it.
+        alert("Copy and send this link to " + target + " to give them Seller Status:\n\n" + sellerLink);
+    }
+</script>
