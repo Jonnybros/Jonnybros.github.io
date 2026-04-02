@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>School Market</title>
+    <style>
+        /* General Styles for iPad */
+        body { font-family: 'Segoe UI', sans-serif; background-color: #f0f2f5; margin: 0; padding: 20px; }
+        header { text-align: center; margin-bottom: 30px; }
+        
+        /* Search Bar */
+        #searchBar { 
+            width: 100%; max-width: 500px; padding: 15px; 
+            font-size: 18px; border-radius: 25px; border: 1px solid #ddd;
+            display: block; margin: 0 auto 30px;
+        }
+
+        /* Product Grid */
+        .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px; }
+        
+        /* Product Card */
+        .card { 
+            background: white; padding: 20px; border-radius: 15px; 
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1); text-align: center;
+        }
+        .card img { width: 100%; height: 150px; object-fit: contain; border-radius: 10px; }
+        .price { color: #2e7d32; font-weight: bold; font-size: 22px; margin: 10px 0; }
+        
+        /* Big Buy Button */
+        .btn { 
+            background-color: #007bff; color: white; padding: 15px; 
+            text-decoration: none; border-radius: 10px; display: block;
+            font-weight: bold; font-size: 18px;
+        }
+        .btn:active { background-color: #0056b3; } /* Visual feedback when tapped */
+    </style>
+</head>
+<body>
+
+<header>
+    <h1>🎒 School Marketplace</h1>
+    <input type="text" id="searchBar" placeholder="Search for items (e.g. pencil, snack)..." onkeyup="filterItems()">
+</header>
+
+<div class="grid" id="productGrid">
+    <!-- Item 1 -->
+    <div class="card">
+        <img src="https://placeholder.com" alt="Item">
+        <h3>Mechanical Pencil</h3>
+        <p class="price">$1.00</p>
+        <p>Location: Blue Benches</p>
+        <a href="YOUR_GOOGLE_FORM_LINK" class="btn">Reserve & Meet Up</a>
+    </div>
+
+    <!-- Item 2 -->
+    <div class="card">
+        <img src="https://placeholder.com" alt="Item">
+        <h3>Graphing Calculator</h3>
+        <p class="price">$15.00</p>
+        <p>Location: Library Entrance</p>
+        <a href="YOUR_GOOGLE_FORM_LINK" class="btn">Reserve & Meet Up</a>
+    </div>
+
+    <!-- Item 3 -->
+    <div class="card">
+        <img src="https://placeholder.com" alt="Item">
+        <h3>External Battery Case</h3>
+        <p class="price">$5.00</p>
+        <p>Location: Cafeteria</p>
+        <a href="YOUR_GOOGLE_FORM_LINK" class="btn">Reserve & Meet Up</a>
+    </div>
+</div>
+
+<script>
+    function filterItems() {
+        let input = document.getElementById('searchBar').value.toLowerCase();
+        let cards = document.getElementsByClassName('card');
+        
+        for (let i = 0; i < cards.length; i++) {
+            let title = cards[i].getElementsByTagName('h3')[0].innerText.toLowerCase();
+            if (title.includes(input)) {
+                cards[i].style.display = "";
+            } else {
+                cards[i].style.display = "none";
+            }
+        }
+    }
+</script>
+
+</body>
+</html>
