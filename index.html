@@ -1,164 +1,131 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>School Marketplace</title>
-    <style>
-        :root { --bg: #313338; --card: #2b2d31; --dark: #1e1f22; --blurple: #5865f2; --text: #dbdee1; --success: #23a55a; }
-        body { background-color: var(--bg); color: var(--text); font-family: sans-serif; margin: 0; display: flex; flex-direction: column; height: 100vh; overflow: hidden; }
+<script>
+    // SETTINGS & DATABASE
+    const SHOP_ITEMS = ["Coca Cola", "Diet Coke", "Monster Energy", "Doritos Cool Ranch", "Takis", "Hot Fries", "Lays Classic", "Barbeque", "Keyboard Fidgets", "Poppets", "Clickers"];
+    const emojis = "😈💀💩👹🤬😡🤑😱😀😁😆🥹😅😂🤣🥲☺️😊😇🙂🙃😉😌".match(/./gu);
+    let isRegistering = false;
 
-        /* Navigation */
-        .top-nav { background: var(--card); padding: 10px 16px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid rgba(0,0,0,0.2); }
-        .main-container { display: flex; flex-grow: 1; overflow: hidden; }
-        .menu-sidebar { width: 220px; background: var(--card); padding: 15px 10px; display: flex; flex-direction: column; gap: 8px; border-right: 1px solid rgba(0,0,0,0.2); }
-        .menu-item { text-decoration: none; color: #949ba4; padding: 10px; border-radius: 4px; font-weight: bold; cursor: pointer; }
-        .menu-item:hover, .menu-item.active { background: #3f4147; color: white; }
-        
-        /* Content Area */
-        .content-area { flex-grow: 1; padding: 20px; overflow-y: auto; text-align: center; }
-        .category-view { display: none; }
-        .category-view.active { display: block; }
+    // 1. DATA PERSISTENCE CHECK (Runs on Page Load)
+    window.onload = () => {
+        const session = localStorage.getItem('session_active');
+        const user = localStorage.getItem('reg_user');
 
-        /* Seller Slots */
-        .slot-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 10px; margin-top: 20px; }
-        .slot-card { background: var(--dark); padding: 10px; border-radius: 8px; border: 1px solid #4e5058; }
-
-        /* Modals & Drawer */
-        .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); z-index: 1000; justify-content: center; align-items: center; }
-        .modal-box { background-color: var(--card); padding: 25px; border-radius: 8px; width: 300px; text-align: center; }
-        .drawer { position: fixed; top: 0; right: -300px; width: 280px; height: 100%; background: #232428; z-index: 201; transition: 0.3s; padding: 20px; box-sizing: border-box; }
-        .drawer.open { right: 0; }
-        .emoji-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 5px; max-height: 120px; overflow-y: auto; background: var(--dark); padding: 8px; border-radius: 6px; margin: 10px 0; }
-
-        .btn { background: var(--blurple); color: white; border: none; padding: 10px; border-radius: 4px; font-weight: bold; cursor: pointer; width: 100%; margin-top: 5px; }
-        input, select { width: 100%; padding: 10px; background: var(--dark); border: none; color: white; margin-bottom: 10px; border-radius: 4px; box-sizing: border-box; }
-    </style>
-</head>
-<body>
-
-    <!-- AUTH MODAL -->
-    <div id="authModal" class="modal-overlay">
-        <div class="modal-box">
-            <h2 id="authTitle" style="color:white;">Welcome</h2>
-            <input type="text" id="userInput" placeholder="Username">
-            <input type="password" id="passInput" placeholder="Password">
-            <button class="btn" onclick="handleAuth()">Continue</button>
-            <p style="font-size:12px; cursor:pointer; color:var(--blurple);" onclick="toggleAuthMode()">Switch to Register/Login</p>
-        </div>
-    </div>
-
-    <nav class="top-nav">
-        <div style="font-weight:bold; color:white;">🎒 MARKET</div>
-        <div onclick="toggleDrawer()" style="cursor:pointer; display:flex; align-items:center; gap:8px;">
-            <div id="navUser" style="font-size:12px;">Guest</div>
-            <div id="navEmoji" style="background:var(--blurple); width:30px; height:30px; border-radius:50%; display:flex; align-items:center; justify-content:center;">👤</div>
-        </div>
-    </nav>
-
-    <div class="main-container">
-        <div class="menu-sidebar">
-            <div class="menu-item active" onclick="showTab('home', this)"># welcome</div>
-            <div class="menu-item" onclick="showTab('chips', this)">🍟 chips</div>
-            <div class="menu-item" onclick="showTab('soda', this)">🥤 soda</div>
-            <div class="menu-item" onclick="showTab('fidgets', this)">🕹️ fidgets</div>
-            <div id="sellerTab" class="menu-item" style="display:none; color:var(--success);" onclick="showTab('seller', this)">🛠️ seller-setup</div>
-        </div>
-
-        <div class="content-area">
-            <div id="home" class="category-view active"><h1># school-marketplace</h1><p>Select a category to start.</p></div>
-            <div id="chips" class="category-view"><h2>🍟 Chips Section</h2><p>Items will appear here.</p></div>
-            <div id="soda" class="category-view"><h2>🥤 Soda Section</h2><p>Items will appear here.</p></div>
-            <div id="fidgets" class="category-view"><h2>🕹️ Fidgets Section</h2><p>Items will appear here.</p></div>
-            
-            <div id="seller" class="category-view">
-                <h2>🛠️ Seller Dashboard</h2>
-                <div id="slotContainer" class="slot-grid"></div>
-                <button class="btn" style="width:200px; margin-top:20px;">Save Listings</button>
-            </div>
-        </div>
-    </div>
-
-    <div id="drawer" class="drawer">
-        <div style="text-align:center;">
-            <div id="drawerEmoji" style="font-size:40px; margin-bottom:10px;">👤</div>
-            <h3 id="drawerUser">Guest</h3>
-            <div id="emojiPicker" class="emoji-grid"></div>
-            <div id="adminSection" style="display:none; border-top:1px solid #444; padding-top:10px;">
-                <p style="color:var(--success); font-size:10px;">ADMIN TOOLS</p>
-                <button class="btn" style="background:var(--success);" onclick="promotePrompt()">Promote This iPad</button>
-            </div>
-            <button class="btn" style="background:var(--danger); margin-top:20px;" onclick="signOut()">Log Out</button>
-        </div>
-    </div>
-
-    <script>
-        const ITEMS = ["Coca Cola", "Diet Coke", "Monster Energy", "Doritos Cool Ranch", "Takis", "Hot Fries", "Lays Classic", "Barbeque", "Keyboard Fidgets", "Poppets", "Clickers"];
-        const emojis = "😈💀💩👹🤬😡🤑😱😀😁😆🥹😅😂🤣🥲☺️😊😇🙂🙃😉😌".match(/./gu);
-        let isReg = false;
-
-        window.onload = () => {
-            const user = localStorage.getItem('u');
-            if(!user) document.getElementById('authModal').style.display='flex';
-            else setupUI(user);
-            
-            // CHECK FOR SELLER LINK IN URL
-            const p = new URLSearchParams(window.location.search);
-            if(p.get('role')==='seller') {
-                localStorage.setItem('isSeller', 'true');
-                localStorage.setItem('tier', p.get('tier'));
-                window.history.replaceState({}, document.title, window.location.pathname);
-            }
-            if(localStorage.getItem('isSeller')==='true') showSellerMenu();
-        };
-
-        function handleAuth() {
-            const u = document.getElementById('userInput').value;
-            const p = document.getElementById('passInput').value;
-            if(isReg) { localStorage.setItem('u', u); localStorage.setItem('p', p); }
-            if(u === localStorage.getItem('u') && p === localStorage.getItem('p')) location.reload();
-            else alert("Wrong password!");
+        if (session !== 'true' || !user) {
+            document.getElementById('authModal').style.display = 'flex';
+        } else {
+            loadUserSession();
         }
+        setupEmojis();
+    };
 
-        function setupUI(u) {
-            document.getElementById('navUser').innerText = u;
-            document.getElementById('drawerUser').innerText = u;
-            if(u.toLowerCase()==='jonny' && localStorage.getItem('p')==='Jonny678!') document.getElementById('adminSection').style.display='block';
-            
-            const picker = document.getElementById('emojiPicker');
+    function loadUserSession() {
+        const u = localStorage.getItem('reg_user');
+        const p = localStorage.getItem('reg_pass');
+        
+        document.getElementById('navUser').innerText = u;
+        document.getElementById('drawerUser').innerText = u;
+        
+        // SECURE ADMIN CHECK: Both name AND password must match
+        if (u.toLowerCase() === "jonny" && p === "Jonny678!") {
+            document.getElementById('adminSection').style.display = 'block';
+        }
+        
+        // PERSISTENT SELLER CHECK: Stays active after updates
+        if (localStorage.getItem('is_seller') === 'true') {
+            document.getElementById('sellerTab').style.display = 'block';
+            setupSellerSlots(localStorage.getItem('seller_tier'));
+        }
+    }
+
+    // 2. AUTH LOGIC (Login/Register)
+    function handleAuth() {
+        const u = document.getElementById('userInput').value.trim();
+        const p = document.getElementById('passInput').value.trim();
+
+        if (!u || !p) return alert("Fill in both fields!");
+
+        if (isRegistering) {
+            // New Account: Save permanently
+            localStorage.setItem('reg_user', u);
+            localStorage.setItem('reg_pass', p);
+            localStorage.setItem('session_active', 'true');
+            location.reload();
+        } else {
+            // Login: Check against permanent save
+            const savedU = localStorage.getItem('reg_user');
+            const savedP = localStorage.getItem('reg_pass');
+            if (u === savedU && p === savedP) {
+                localStorage.setItem('session_active', 'true');
+                location.reload();
+            } else {
+                alert("Incorrect login. Use the iPad you registered on!");
+            }
+        }
+    }
+
+    // 3. SELLER LOGIC
+    function promotePrompt() {
+        const tier = prompt("Enter Tier (1, 2, 3, max):");
+        // This generates the link for the OTHER person's iPad
+        const link = window.location.origin + window.location.pathname + "?role=seller&tier=" + tier;
+        alert("SHARE THIS LINK WITH THE SELLER:\n\n" + link);
+    }
+
+    function setupSellerSlots(tier) {
+        const container = document.getElementById('slotContainer');
+        container.innerHTML = ""; // Clear old slots
+        let count = (tier === '1') ? 2 : (tier === '2') ? 5 : (tier === '3') ? 10 : 20;
+        
+        for(let i=1; i<=count; i++) {
+            container.innerHTML += `
+                <div class="slot-card">
+                    <small style="color:#949ba4">Slot ${i}</small>
+                    <select style="margin-top:8px; padding:5px; font-size:12px; width:100%; background:#313338; color:white; border:none; border-radius:4px;">
+                        <option>Empty</option>
+                        ${SHOP_ITEMS.map(it => `<option>${it}</option>`).join('')}
+                    </select>
+                </div>`;
+        }
+    }
+
+    // 4. UI LOGIC
+    function toggleAuthMode() { 
+        isRegistering = !isRegistering; 
+        document.getElementById('authTitle').innerText = isRegistering ? "Register" : "Login"; 
+    }
+
+    function toggleDrawer() { 
+        document.getElementById('drawer').classList.toggle('open'); 
+    }
+
+    function signOut() {
+        // Only flip the session. DO NOT clear() or removeItem('reg_user')!
+        localStorage.setItem('session_active', 'false'); 
+        location.reload(); 
+    }
+
+    function setupEmojis() {
+        const p = document.getElementById('emojiPicker');
+        const savedEmoji = localStorage.getItem('m_emoji') || '👤';
+        document.getElementById('navEmoji').innerText = savedEmoji;
+        document.getElementById('drawerEmoji').innerText = savedEmoji;
+
+        if (p.children.length === 0) { // Prevent duplicates on refresh
             emojis.forEach(e => {
                 let s = document.createElement('span'); s.innerText = e; s.style.cursor="pointer";
-                s.onclick = () => { document.getElementById('navEmoji').innerText=e; document.getElementById('drawerEmoji').innerText=e; };
-                picker.appendChild(s);
+                s.onclick = () => { 
+                    localStorage.setItem('m_emoji', e);
+                    document.getElementById('navEmoji').innerText=e; 
+                    document.getElementById('drawerEmoji').innerText=e; 
+                };
+                p.appendChild(s);
             });
         }
+    }
 
-        function promotePrompt() {
-            const tier = prompt("Enter Tier (1, 2, 3, max):");
-            const link = window.location.href + "?role=seller&tier=" + tier;
-            alert("SHARE THIS LINK WITH THE SELLER:\n\n" + link);
-        }
-
-        function showSellerMenu() {
-            document.getElementById('sellerTab').style.display = 'block';
-            const tier = localStorage.getItem('tier');
-            const count = tier === '1' ? 2 : tier === '2' ? 5 : tier === '3' ? 10 : 20;
-            const con = document.getElementById('slotContainer');
-            for(let i=1; i<=count; i++) {
-                con.innerHTML += `<div class="slot-card"><small>Slot ${i}</small><select>${ITEMS.map(it=>`<option>${it}</option>`).join('')}</select></div>`;
-            }
-        }
-
-        function showTab(id, btn) {
-            document.querySelectorAll('.category-view').forEach(v => v.classList.remove('active'));
-            document.querySelectorAll('.menu-item').forEach(m => m.classList.remove('active'));
-            document.getElementById(id).classList.add('active');
-            btn.classList.add('active');
-        }
-
-        function toggleAuthMode() { isReg = !isReg; document.getElementById('authTitle').innerText = isReg ? "Register" : "Login"; }
-        function toggleDrawer() { document.getElementById('drawer').classList.toggle('open'); }
-        function signOut() { localStorage.removeItem('u'); location.reload(); }
-    </script>
-</body>
-</html>
+    function showTab(id, btn) {
+        document.querySelectorAll('.category-view').forEach(v => v.classList.remove('active'));
+        document.querySelectorAll('.menu-item').forEach(m => m.classList.remove('active'));
+        document.getElementById(id).classList.add('active');
+        btn.classList.add('active');
+    }
+</script>
