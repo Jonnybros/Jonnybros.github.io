@@ -9,85 +9,128 @@
         body { 
             background-color: #313338; 
             color: #dbdee1; 
-            font-family: 'gg sans', 'Helvetica Neue', Arial, sans-serif; 
+            font-family: 'gg sans', sans-serif; 
             margin: 0; 
             display: flex; 
             flex-direction: column;
-            align-items: center; 
-            justify-content: center; 
-            height: 100vh;
+            align-items: center;
+            min-height: 100vh;
         }
 
-        h1 { color: white; margin-bottom: 40px; font-size: 32px; }
-
-        /* Centered Box Container */
-        .category-container { 
-            display: flex; 
-            gap: 24px; 
-            flex-wrap: wrap; 
-            justify-content: center; 
-            width: 95%;
-            max-width: 1000px;
+        /* Top Navigation Bar */
+        .top-nav {
+            width: 100%;
+            background-color: #2b2d31;
+            padding: 10px 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            box-sizing: border-box;
+            position: fixed;
+            top: 0;
+            z-index: 100;
         }
 
-        /* Large Category Boxes */
-        .cat-box { 
-            background-color: #2b2d31; 
-            width: 280px; 
-            height: 280px; 
-            border-radius: 16px; 
-            display: flex; 
-            flex-direction: column;
-            align-items: center; 
-            justify-content: center; 
-            cursor: pointer;
-            transition: all 0.2s ease-in-out;
-            border: 2px solid transparent;
-            text-decoration: none;
+        /* Search Bar Styling */
+        .search-container { flex-grow: 1; max-width: 400px; margin: 0 20px; }
+        #mainSearch {
+            width: 100%;
+            background-color: #1e1f22;
+            border: none;
+            border-radius: 4px;
+            padding: 8px 12px;
             color: white;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+            font-size: 14px;
         }
 
-        /* Hover and Tap Effects */
-        .cat-box:hover { 
-            background-color: #35373c; 
-            transform: translateY(-8px);
-            border-color: #5865f2; /* Discord Blurple */
+        /* User Profile Section */
+        .user-profile { display: flex; align-items: center; gap: 10px; cursor: pointer; }
+        .user-photo {
+            width: 35px;
+            height: 35px;
+            background-color: #5865f2; /* Blurple */
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
         }
-        .cat-box:active { transform: scale(0.95); }
+        .user-name { font-weight: bold; font-size: 14px; color: white; }
 
-        .cat-icon { font-size: 80px; margin-bottom: 20px; }
-        .cat-name { font-size: 26px; font-weight: bold; text-transform: uppercase; letter-spacing: 1px; }
+        /* Main Content Spacing */
+        .content { margin-top: 100px; text-align: center; width: 100%; }
+        h1 { font-size: 28px; margin-bottom: 30px; color: white; }
 
-        /* Responsive Fix for small screens/Portrait Mode */
-        @media (max-width: 600px) {
-            .cat-box { width: 90%; height: 180px; flex-direction: row; gap: 30px; }
-            body { height: auto; padding: 50px 0; }
+        /* Category Boxes (Same as before) */
+        .category-container { display: flex; gap: 20px; flex-wrap: wrap; justify-content: center; padding: 20px; }
+        .cat-box { 
+            background-color: #2b2d31; width: 250px; height: 250px; border-radius: 12px; 
+            display: flex; flex-direction: column; align-items: center; justify-content: center; 
+            text-decoration: none; color: white; transition: 0.2s; border: 2px solid transparent;
         }
+        .cat-box:hover { border-color: #5865f2; transform: translateY(-5px); }
+        .cat-icon { font-size: 60px; margin-bottom: 10px; }
+        .cat-name { font-weight: bold; font-size: 20px; }
     </style>
 </head>
 <body>
 
-    <h1># school-marketplace</h1>
+    <!-- Top Navigation -->
+    <nav class="top-nav">
+        <div style="font-weight: bold; color: white;">🎒 Shop</div>
+        
+        <div class="search-container">
+            <input type="text" id="mainSearch" placeholder="Search items or sellers..." onkeyup="doSearch()">
+        </div>
 
-    <div class="category-container">
-        <!-- Chips Section -->
-        <a href="chips.html" class="cat-box">
-            <div class="cat-icon">🍟</div>
-            <div class="cat-name">Chips</div>
-        </a>
+        <div class="user-profile" onclick="changeEmoji()">
+            <div class="user-name" id="displayUser">Guest</div>
+            <div class="user-photo" id="userEmoji">👤</div>
+        </div>
+    </nav>
 
-        <!-- Soda Section -->
-        <a href="soda.html" class="cat-box">
-            <div class="cat-icon">🥤</div>
-            <div class="cat-name">Soda</div>
-        </a>
-
-        <!-- Fidgets Section -->
-        <a href="fidgets.html" class="cat-box">
-            <div class="cat-icon">🕹️</div>
-            <div class="cat-name">Fidgets</div>
-        </a>
+    <div class="content">
+        <h1># school-marketplace</h1>
+        <div class="category-container">
+            <a href="chips.html" class="cat-box">
+                <div class="cat-icon">🍟</div>
+                <div class="cat-name">Chips</div>
+            </a>
+            <a href="soda.html" class="cat-box">
+                <div class="cat-icon">🥤</div>
+                <div class="cat-name">Soda</div>
+            </a>
+            <a href="fidgets.html" class="cat-box">
+                <div class="cat-icon">🕹️</div>
+                <div class="cat-name">Fidgets</div>
+            </a>
+        </div>
     </div>
 
+    <script>
+        // Load User Info from Local Storage
+        window.onload = function() {
+            const savedUser = localStorage.getItem('username') || "Guest";
+            const savedEmoji = localStorage.getItem('userEmoji') || "👤";
+            document.getElementById('displayUser').innerText = savedUser;
+            document.getElementById('userEmoji').innerText = savedEmoji;
+        };
+
+        // Simple Search Function
+        function doSearch() {
+            let input = document.getElementById('mainSearch').value.toLowerCase();
+            console.log("Searching for: " + input);
+            // You can add logic here to filter items across all pages
+        }
+
+        // Tap photo to cycle emojis
+        const emojis = ["😎", "🐱", "🎮", "🍕", "🔥", "💎"];
+        let eIndex = 0;
+        function changeEmoji() {
+            eIndex = (eIndex + 1) % emojis.length;
+            document.getElementById('userEmoji').innerText = emojis[eIndex];
+            localStorage.setItem('userEmoji', emojis[eIndex]);
+        }
+    </script>
 </body>
+</html>
