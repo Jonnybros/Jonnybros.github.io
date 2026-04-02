@@ -5,16 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>School Marketplace</title>
 
-    <!-- 1. DUAL-LOAD FIREBASE (More reliable for School iPads) -->
+    <!-- 1. STABLE FIREBASE LINKS (No document.write) -->
     <script src="https://gstatic.com"></script>
     <script src="https://gstatic.com"></script>
-    <!-- Fallback if Google is blocked -->
-    <script>
-        if (typeof firebase === 'undefined') {
-            document.write('<script src="https://cloudflare.com"><\/script>');
-            document.write('<script src="https://cloudflare.com"><\/script>');
-        }
-    </script>
 
     <style>
         :root { --bg: #313338; --card: #2b2d31; --dark: #1e1f22; --blurple: #5865f2; --text: #dbdee1; --success: #23a55a; --danger: #da373c; }
@@ -22,9 +15,9 @@
 
         /* Auth Modal */
         .modal-overlay { display: flex; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.95); z-index: 1000; justify-content: center; align-items: center; }
-        .modal-box { background-color: var(--card); padding: 25px; border-radius: 8px; width: 300px; text-align: center; box-shadow: 0 8px 16px rgba(0,0,0,0.5); }
+        .modal-box { background-color: var(--card); padding: 25px; border-radius: 8px; width: 300px; text-align: center; }
         
-        /* Layout */
+        /* Navigation */
         .top-nav { background: var(--card); padding: 10px 16px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid #1e1f22; }
         .main-container { display: flex; flex-grow: 1; overflow: hidden; }
         .menu-sidebar { width: 220px; background: var(--card); padding: 15px 10px; display: flex; flex-direction: column; gap: 8px; }
@@ -35,7 +28,7 @@
         .category-view { display: none; }
         .category-view.active { display: block; }
 
-        /* Account Drawer */
+        /* Drawer & Emoji Grid */
         .drawer { position: fixed; top: 0; right: -300px; width: 280px; height: 100%; background: #232428; z-index: 201; transition: 0.3s; padding: 20px; box-sizing: border-box; }
         .drawer.open { right: 0; }
         .emoji-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 5px; max-height: 120px; overflow-y: auto; background: var(--dark); padding: 8px; border-radius: 6px; margin: 10px 0; }
@@ -75,15 +68,15 @@
         </div>
 
         <div class="content-area">
-            <div id="home" class="category-view active"><h1># school-marketplace</h1><p>Ready to trade.</p></div>
-            <div id="chips" class="category-view"><h2>🍟 Chips</h2><p>Select your favorite snacks.</p></div>
-            <div id="soda" class="category-view"><h2>🥤 Soda</h2><p>Ice cold drinks listed here.</p></div>
-            <div id="fidgets" class="category-view"><h2>🕹️ Fidgets</h2><p>The best toys at school.</p></div>
+            <div id="home" class="category-view active"><h1># school-marketplace</h1><p>Online Database Connected.</p></div>
+            <div id="chips" class="category-view"><h2>🍟 Chips</h2><p>Loading market items...</p></div>
+            <div id="soda" class="category-view"><h2>🥤 Soda</h2><p>Loading market items...</p></div>
+            <div id="fidgets" class="category-view"><h2>🕹️ Fidgets</h2><p>Loading market items...</p></div>
             
             <div id="seller" class="category-view">
                 <h2>🛠️ Seller Dashboard</h2>
                 <div id="slotContainer" style="display:grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap:10px;"></div>
-                <button class="btn" style="width:200px; margin-top:20px;" onclick="alert('Listings saved online!')">Save to Market</button>
+                <button class="btn" style="width:200px; margin-top:20px;" onclick="alert('Listings Updated!')">Update Shop</button>
             </div>
         </div>
     </div>
@@ -95,12 +88,12 @@
             <div id="emojiPicker" class="emoji-grid"></div>
             
             <div id="adminSection" style="display:none; border-top:1px solid #444; padding-top:10px; margin-top:10px;">
-                <p style="color:var(--success); font-size:10px;">ADMIN TOOLS</p>
+                <p style="color:var(--success); font-size:10px; font-weight:bold;">👑 ADMIN TOOLS</p>
                 <input type="text" id="promoTarget" placeholder="Username to Promote">
                 <button class="btn" style="background:var(--success);" onclick="promoteUser()">Promote User</button>
             </div>
             
-            <button class="btn" style="background:var(--danger); margin-top:20px;" onclick="signOut()">Log Out</button>
+            <button class="btn" style="background:var(--danger); margin-top:40px;" onclick="signOut()">Log Out</button>
         </div>
     </div>
 
@@ -120,10 +113,6 @@
         let db = null;
 
         window.onload = function() {
-            setTimeout(initApp, 500); // Give scripts a moment to load
-        };
-
-        function initApp() {
             try {
                 if (typeof firebase !== 'undefined') {
                     if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
@@ -137,14 +126,12 @@
                         setupUI(u);
                         checkSellerStatus(u);
                     }
-                } else {
-                    document.getElementById("status").innerText = "❌ Firebase failed to load. Check internet.";
                 }
             } catch (e) {
                 console.error(e);
             }
             setupEmojis();
-        }
+        };
 
         function handleAuth() {
             const u = document.getElementById('userInput').value.trim();
@@ -159,8 +146,7 @@
         function setupUI(u) {
             document.getElementById('navUser').innerText = u;
             document.getElementById('drawerUser').innerText = u;
-            const p = localStorage.getItem('m_pass');
-            if (u.toLowerCase() === "jonny" && p === "Jonny678!") {
+            if (u.toLowerCase() === "jonny" && localStorage.getItem('m_pass') === "Jonny678!") {
                 document.getElementById('adminSection').style.display = 'block';
             }
         }
@@ -178,7 +164,7 @@
             const target = document.getElementById('promoTarget').value;
             if (target && db) {
                 db.ref('users/' + target).update({ is_seller: true, seller_tier: '1' });
-                alert(target + " is now a Seller!");
+                alert(target + " is now an active Seller!");
             }
         }
 
@@ -212,3 +198,4 @@
     </script>
 </body>
 </html>
+
