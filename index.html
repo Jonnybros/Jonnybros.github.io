@@ -2,153 +2,151 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>School Marketplace</title>
     <style>
         /* Discord Theme Colors */
-        body { background-color: #313338; color: #dbdee1; font-family: 'gg sans', sans-serif; margin: 0; overflow-x: hidden; }
+        :root {
+            --bg-dark: #313338;
+            --bg-secondary: #2b2d31;
+            --bg-tertiary: #1e1f22;
+            --blurple: #5865f2;
+            --text: #dbdee1;
+            --danger: #da373c;
+        }
+
+        body { 
+            background-color: var(--bg-dark); color: var(--text); font-family: sans-serif; 
+            margin: 0; display: flex; flex-direction: column; align-items: center; min-height: 100vh;
+        }
+
+        /* Forced Auth Modal */
+        #authModal {
+            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.95); z-index: 1000; justify-content: center; align-items: center;
+        }
+        .modal-content {
+            background-color: var(--bg-secondary); padding: 30px; border-radius: 8px;
+            width: 90%; max-width: 400px; text-align: center;
+        }
+        input {
+            width: 100%; padding: 12px; background: var(--bg-tertiary); border: none;
+            border-radius: 4px; color: white; margin: 10px 0; box-sizing: border-box;
+        }
 
         /* Top Nav */
         .top-nav {
-            width: 100%; background-color: #2b2d31; padding: 10px 20px;
+            width: 100%; background: var(--bg-secondary); padding: 10px 20px;
             display: flex; align-items: center; justify-content: space-between;
             position: fixed; top: 0; z-index: 100; box-sizing: border-box;
         }
 
-        .user-profile { display: flex; align-items: center; gap: 10px; cursor: pointer; }
-        .user-photo { width: 35px; height: 35px; background-color: #5865f2; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 20px; }
-
-        /* Slide-Over Window (Drawer) */
-        .drawer-overlay {
-            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.7); z-index: 200;
-        }
+        /* Slide Drawer */
+        .drawer-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); z-index: 200; }
         .drawer {
             position: fixed; top: 0; right: -300px; width: 280px; height: 100%;
-            background-color: #232428; z-index: 201; transition: 0.3s ease;
-            padding: 40px 20px; box-sizing: border-box; box-shadow: -5px 0 15px rgba(0,0,0,0.3);
+            background: #232428; z-index: 201; transition: 0.3s; padding: 40px 20px; box-sizing: border-box;
         }
         .drawer.open { right: 0; }
 
-        /* Drawer Content */
-        .drawer-header { text-align: center; margin-bottom: 30px; }
-        .big-avatar { width: 80px; height: 80px; background: #5865f2; border-radius: 50%; font-size: 40px; display: flex; align-items: center; justify-content: center; margin: 0 auto 10px; }
-        .logout-btn {
-            width: 100%; background-color: #da373c; color: white; border: none;
-            padding: 12px; border-radius: 4px; font-weight: bold; cursor: pointer; margin-top: 20px;
-        }
-
-        /* Category Boxes */
+        /* General Styles */
+        .primary-btn { width: 100%; background: var(--blurple); color: white; padding: 12px; border: none; border-radius: 4px; font-weight: bold; cursor: pointer; }
+        .logout-btn { width: 100%; background: var(--danger); color: white; border: none; padding: 12px; border-radius: 4px; font-weight: bold; cursor: pointer; margin-top: 20px; }
         .content { margin-top: 100px; text-align: center; }
         .category-container { display: flex; gap: 20px; flex-wrap: wrap; justify-content: center; padding: 20px; }
-        .cat-box { 
-            background-color: #2b2d31; width: 250px; height: 250px; border-radius: 12px; 
-            display: flex; flex-direction: column; align-items: center; justify-content: center; 
-            text-decoration: none; color: white; transition: 0.2s; border: 2px solid transparent;
-        }
-        .cat-box:hover { border-color: #5865f2; }
+        .cat-box { background: var(--bg-secondary); width: 200px; height: 200px; border-radius: 12px; display: flex; flex-direction: column; align-items: center; justify-content: center; text-decoration: none; color: white; border: 2px solid transparent; }
+        .cat-box:hover { border-color: var(--blurple); }
     </style>
 </head>
 <body>
 
-    <!-- Top Navigation -->
+    <!-- 1. THE GATEKEEPER MODAL -->
+    <div id="authModal">
+        <div class="modal-content">
+            <h2 style="color:white;">Welcome Back!</h2>
+            <p>Please sign in to access the shop.</p>
+            <input type="text" id="userInput" placeholder="Username">
+            <input type="password" placeholder="Password">
+            <button class="primary-btn" onclick="signIn()">Sign In / Create Account</button>
+        </div>
+    </div>
+
+    <!-- 2. NAVIGATION -->
     <nav class="top-nav">
-        <div style="font-weight:bold; color:white;">🎒 Shop</div>
-        <div class="user-profile" onclick="toggleDrawer()">
-            <div id="navUser" style="font-size:14px; font-weight:bold;">Guest</div>
-            <div class="user-photo" id="navEmoji">👤</div>
+        <div style="font-weight:bold; color:white;">🎒 School Market</div>
+        <div onclick="toggleDrawer()" style="display:flex; align-items:center; gap:10px; cursor:pointer;">
+            <div id="navUser">Guest</div>
+            <div id="navEmoji" style="background:var(--blurple); width:35px; height:35px; border-radius:50%; display:flex; align-items:center; justify-content:center;">👤</div>
         </div>
     </nav>
 
-    <!-- Slide-Over Drawer -->
+    <!-- 3. SLIDE-OVER DRAWER -->
     <div id="overlay" class="drawer-overlay" onclick="toggleDrawer()"></div>
     <div id="drawer" class="drawer">
-        <div class="drawer-header">
-            <div class="big-avatar" id="drawerEmoji">👤</div>
-            <h2 id="drawerUser" style="color:white; margin:10px 0 5px;">Guest</h2>
-            <p style="color:#b5bac1; font-size:14px;">School Member</p>
+        <div style="text-align:center;">
+            <div id="drawerEmoji" style="font-size:40px; margin-bottom:10px;">👤</div>
+            <h2 id="drawerUser" style="color:white;">Guest</h2>
+            <button class="logout-btn" onclick="signOut()">Log Out</button>
         </div>
-        <hr style="border: 0; border-top: 1px solid #3f4147;">
-        <button class="logout-btn" onclick="signOut()">Sign Out</button>
     </div>
 
-    <!-- Main Content -->
+    <!-- 4. CONTENT -->
     <div class="content">
-        <h1># school-marketplace</h1>
+        <h1># select-category</h1>
         <div class="category-container">
-            <a href="chips.html" class="cat-box"><span>🍟</span><strong>CHIPS</strong></a>
-            <a href="soda.html" class="cat-box"><span>🥤</span><strong>SODA</strong></a>
-            <a href="fidgets.html" class="cat-box"><span>🕹️</span><strong>FIDGETS</strong></a>
+            <a href="chips.html" class="cat-box"><span style="font-size:50px;">🍟</span><strong>CHIPS</strong></a>
+            <a href="soda.html" class="cat-box"><span style="font-size:50px;">🥤</span><strong>SODA</strong></a>
+            <a href="fidgets.html" class="cat-box"><span style="font-size:50px;">🕹️</span><strong>FIDGETS</strong></a>
         </div>
     </div>
 
-   <script>
-    // 1. RUN THIS AS SOON AS THE PAGE LOADS
-    window.onload = function() {
-        checkAuth();
-        updateUI();
-    };
-
-    function checkAuth() {
-        const user = localStorage.getItem('username');
-        const modal = document.getElementById('authModal');
-        
-        if (!user) {
-            // If no user found, force the login modal to show
-            modal.style.display = 'flex';
-            // Disable scrolling so they can't see the shop
-            document.body.style.overflow = 'hidden';
-        } else {
-            modal.style.display = 'none';
-            document.body.style.overflow = 'auto';
+    <script>
+        // Check login immediately
+        function checkAuth() {
+            const user = localStorage.getItem('market_user');
+            if (!user) {
+                document.getElementById('authModal').style.display = 'flex';
+                document.body.style.overflow = 'hidden';
+            } else {
+                document.getElementById('authModal').style.display = 'none';
+                document.body.style.overflow = 'auto';
+                updateUI(user);
+            }
         }
-    }
 
-    // 2. THE SIGN UP FUNCTION
-    function finishSignup() {
-        const userInput = document.getElementById('username').value;
-        const passInput = document.getElementById('password').value;
-
-        if (userInput.length > 2 && passInput.length > 2) {
-            localStorage.setItem('username', userInput);
-            localStorage.setItem('isLoggedIn', 'true');
-            localStorage.setItem('userEmoji', '👤'); // Default emoji
-            
-            // Hide the modal and refresh UI
-            document.getElementById('authModal').style.display = 'none';
-            document.body.style.overflow = 'auto';
-            updateUI();
-            alert("Welcome to the shop, " + userInput + "!");
-        } else {
-            alert("Please enter a valid Username and Password.");
+        function signIn() {
+            const name = document.getElementById('userInput').value.trim();
+            if (name.length < 2) {
+                alert("Enter a username!");
+                return;
+            }
+            localStorage.setItem('market_user', name);
+            localStorage.setItem('market_emoji', '😎');
+            location.reload(); // Refresh to apply changes
         }
-    }
 
-    // 3. UPDATING THE UI
-    function updateUI() {
-        const user = localStorage.getItem('username') || "Guest";
-        const emoji = localStorage.getItem('userEmoji') || "👤";
-        
-        document.getElementById('navUser').innerText = user;
-        document.getElementById('drawerUser').innerText = user;
-        document.getElementById('navEmoji').innerText = emoji;
-        document.getElementById('drawerEmoji').innerText = emoji;
-    }
+        function updateUI(user) {
+            const emoji = localStorage.getItem('market_emoji') || '👤';
+            document.getElementById('navUser').innerText = user;
+            document.getElementById('drawerUser').innerText = user;
+            document.getElementById('navEmoji').innerText = emoji;
+            document.getElementById('drawerEmoji').innerText = emoji;
+        }
 
-    // 4. DRAWER LOGIC
-    function toggleDrawer() {
-        const drawer = document.getElementById('drawer');
-        const overlay = document.getElementById('overlay');
-        drawer.classList.toggle('open');
-        overlay.style.display = drawer.classList.contains('open') ? 'block' : 'none';
-    }
+        function toggleDrawer() {
+            const d = document.getElementById('drawer');
+            const o = document.getElementById('overlay');
+            d.classList.toggle('open');
+            o.style.display = d.classList.contains('open') ? 'block' : 'none';
+        }
 
-    // 5. THE SIGN OUT FUNCTION
-    function signOut() {
-        localStorage.clear(); // Deletes the "account"
-        location.reload();    // Refreshing the page triggers checkAuth() which shows the login box
-    }
-</script>
+        function signOut() {
+            localStorage.removeItem('market_user');
+            localStorage.removeItem('market_emoji');
+            location.reload(); // Refresh will trigger checkAuth() and show login
+        }
 
+        window.onload = checkAuth;
+    </script>
 </body>
 </html>
