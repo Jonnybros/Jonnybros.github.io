@@ -2,112 +2,60 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>School Marketplace</title>
     
-    <!-- 1. FIREBASE BRAINS (Correct Compat Links) -->
- <script src="https://gstatic.com"></script>
-<script src="https://gstatic.com"></script>
-<script src="https://gstatic.com"></script>
+    <!-- 1. LOAD FIREBASE (These links MUST be exact) -->
+    <script src="https://gstatic.com"></script>
+    <script src="https://gstatic.com"></script>
+    <script src="https://gstatic.com"></script>
 
     <style>
-        /* DISCORD THEME */
-        :root { --bg: #313338; --card: #2b2d31; --dark: #1e1f22; --blurple: #5865f2; --text: #dbdee1; --success: #23a55a; --danger: #da373c; }
-        body { background-color: var(--bg); color: var(--text); font-family: sans-serif; margin: 0; display: flex; flex-direction: column; height: 100vh; overflow: hidden; }
-
-        /* UI ELEMENTS */
-        .top-nav { background: var(--card); padding: 10px 16px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid #1e1f22; }
-        .main-container { display: flex; flex-grow: 1; overflow: hidden; }
-        .menu-sidebar { width: 220px; background: var(--card); padding: 15px 10px; display: flex; flex-direction: column; gap: 8px; }
-        .menu-item { text-decoration: none; color: #949ba4; padding: 10px; border-radius: 4px; font-weight: bold; cursor: pointer; }
-        .menu-item:hover, .menu-item.active { background: #3f4147; color: white; }
-
-        .content-area { flex-grow: 1; padding: 20px; overflow-y: auto; text-align: center; }
-        .category-view { display: none; }
-        .category-view.active { display: block; }
-
-        /* MODALS */
-        .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); z-index: 1000; justify-content: center; align-items: center; }
-        .modal-box { background-color: var(--card); padding: 25px; border-radius: 8px; width: 300px; text-align: center; }
-        
-        /* DRAWER */
-        .drawer { position: fixed; top: 0; right: -300px; width: 280px; height: 100%; background: #232428; z-index: 201; transition: 0.3s; padding: 20px; box-sizing: border-box; }
-        .drawer.open { right: 0; }
-        .emoji-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 5px; max-height: 120px; overflow-y: auto; background: var(--dark); padding: 8px; border-radius: 6px; margin: 10px 0; }
-
-        .btn { background: var(--blurple); color: white; border: none; padding: 10px; border-radius: 4px; font-weight: bold; cursor: pointer; width: 100%; margin-top: 5px; }
-        input, select { width: 100%; padding: 10px; background: var(--dark); border: none; color: white; margin-bottom: 10px; border-radius: 4px; box-sizing: border-box; }
-        .slot-card { background: var(--dark); padding: 10px; border-radius: 8px; border: 1px solid #4e5058; margin-bottom: 10px; }
+        body { background-color: #313338; color: #dbdee1; font-family: sans-serif; margin: 0; display: flex; flex-direction: column; height: 100vh; }
+        .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 1000; justify-content: center; align-items: center; }
+        .modal-box { background-color: #2b2d31; padding: 25px; border-radius: 8px; width: 300px; text-align: center; }
+        .top-nav { background: #2b2d31; padding: 10px 16px; display: flex; align-items: center; justify-content: space-between; }
+        .menu-sidebar { width: 220px; background: #2b2d31; padding: 15px; }
+        .content-area { flex-grow: 1; padding: 20px; text-align: center; }
+        .btn { background: #5865f2; color: white; border: none; padding: 10px; width: 100%; margin-top: 10px; cursor: pointer; }
+        input { width: 100%; padding: 10px; margin-bottom: 10px; background: #1e1f22; border: none; color: white; }
+        .category-view { display: none; } .category-view.active { display: block; }
     </style>
 </head>
 <body>
 
-    <!-- AUTH MODAL -->
+    <!-- LOGIN BOX -->
     <div id="authModal" class="modal-overlay" style="display:flex;">
         <div class="modal-box">
-            <h2 id="authTitle" style="color:white;">Welcome</h2>
+            <h2>Welcome</h2>
             <input type="text" id="userInput" placeholder="Username">
             <input type="password" id="passInput" placeholder="Password">
-            <button class="btn" onclick="handleAuth()">Log In / Register</button>
+            <button class="btn" onclick="handleAuth()">Log In</button>
+            <p id="status" style="color:orange; font-size:12px; margin-top:10px;">Connecting...</p>
         </div>
     </div>
 
     <nav class="top-nav">
         <div style="font-weight:bold; color:white;">🎒 MARKET</div>
-        <div onclick="toggleDrawer()" style="cursor:pointer; display:flex; align-items:center; gap:8px;">
-            <div id="navUser" style="font-size:12px;">Guest</div>
-            <div id="navEmoji" style="background:var(--blurple); width:30px; height:30px; border-radius:50%; display:flex; align-items:center; justify-content:center;">👤</div>
-        </div>
+        <div id="navUser">Guest</div>
     </nav>
 
-    <div class="main-container">
+    <div style="display:flex; height:100%;">
         <div class="menu-sidebar">
-            <div class="menu-item active" onclick="showTab('home', this)">🏠 Welcome</div>
-            <div class="menu-item" onclick="showTab('chips', this)">🍟 Chips</div>
-            <div class="menu-item" onclick="showTab('soda', this)">🥤 Soda</div>
-            <div class="menu-item" onclick="showTab('fidgets', this)">🕹️ Fidgets</div>
-            <div id="sellerTab" class="menu-item" style="display:none; color:var(--success);" onclick="showTab('seller', this)">🛠️ Seller Setup</div>
+            <div onclick="show('home')" style="cursor:pointer; padding:10px;">🏠 Home</div>
+            <div onclick="show('seller')" style="cursor:pointer; padding:10px; color:#23a55a;">🛠️ Seller</div>
         </div>
-
         <div class="content-area">
-            <div id="home" class="category-view active"><h1># school-marketplace</h1><p>Select a category to view items.</p></div>
-            <div id="chips" class="category-view"><h2>🍟 Chips</h2><p>Loading items...</p></div>
-            <div id="soda" class="category-view"><h2>🥤 Soda</h2><p>Loading items...</p></div>
-            <div id="fidgets" class="category-view"><h2>🕹️ Fidgets</h2><p>Loading items...</p></div>
-            
+            <div id="home" class="category-view active"><h1># marketplace</h1></div>
             <div id="seller" class="category-view">
-                <h2>🛠️ Seller Dashboard</h2>
-                <div id="slotContainer"></div>
-                <button class="btn" style="width:200px; margin-top:20px;" onclick="saveSlots()">Save to Market</button>
+                <h2>Seller Dashboard</h2>
+                <button class="btn" onclick="promoteSelf()">Promote Me (Admin)</button>
             </div>
-        </div>
-    </div>
-
-    <div id="overlay" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:200;" onclick="toggleDrawer()"></div>
-    <div id="drawer" class="drawer">
-        <div style="text-align:center;">
-            <div id="drawerEmoji" style="font-size:40px; margin-bottom:10px;">👤</div>
-            <h3 id="drawerUser">Guest</h3>
-            <div id="emojiPicker" class="emoji-grid"></div>
-            
-            <!-- ADMIN TOOLS -->
-            <div id="adminSection" style="display:none; border-top:1px solid #444; padding-top:10px; margin-top:10px;">
-                <p style="color:var(--success); font-size:10px;">ADMIN TOOLS</p>
-                <input type="text" id="promoTarget" placeholder="Username to Promote">
-                <select id="promoTier">
-                    <option value="1">Tier 1</option>
-                    <option value="2">Tier 2</option>
-                    <option value="3">Tier 3</option>
-                </select>
-                <button class="btn" style="background:var(--success);" onclick="promoteUser()">Promote User</button>
-            </div>
-            
-            <button class="btn" style="background:var(--danger); margin-top:20px;" onclick="signOut()">Log Out</button>
         </div>
     </div>
 
     <script>
-        // 2. YOUR CONFIG (Only declared ONCE)
+        // 2. YOUR CONFIGURATION
         const firebaseConfig = {
             apiKey: "AIzaSyBZTGndL235B-c6mYft3mblBz6eN4vqRLM",
             authDomain: "://firebaseapp.com",
@@ -118,104 +66,47 @@
             appId: "1:849244125573:web:cca81082d1204de4db6cec"
         };
 
-        // 3. INITIALIZE FIREBASE SAFELY
-        if (typeof firebase !== 'undefined') {
-            if (!firebase.apps.length) {
-                firebase.initializeApp(firebaseConfig);
-            }
-            var db = firebase.database();
-        } else {
-            console.error("Firebase not loaded! Check script tags.");
+        // 3. START FIREBASE
+        let db;
+        try {
+            firebase.initializeApp(firebaseConfig);
+            db = firebase.database();
+            document.getElementById('status').innerText = "Online & Ready!";
+            document.getElementById('status').style.color = "#23a55a";
+        } catch (error) {
+            console.error(error);
+            document.getElementById('status').innerText = "Error: " + error.message;
         }
 
-        const ITEMS = ["Coca Cola", "Diet Coke", "Monster Energy", "Doritos Cool Ranch", "Takis", "Hot Fries", "Lays Classic", "Barbeque", "Keyboard Fidgets", "Poppets", "Clickers"];
-        const emojis = "😈💀💩👹🤬😡🤑😱😀😁😆🥹😅😂🤣🥲☺️😊😇".match(/./gu);
-
-        // 4. MAIN LOGIC
-        window.onload = () => {
-            const u = localStorage.getItem('reg_user');
-            if (u) {
-                document.getElementById('authModal').style.display = 'none';
-                setupUI(u);
-                checkOnlineStatus(u);
-            }
-            setupEmojis();
-        };
-
+        // 4. APP LOGIC
         function handleAuth() {
-            const u = document.getElementById('userInput').value.trim();
-            const p = document.getElementById('passInput').value.trim();
-            if(u && p) {
-                localStorage.setItem('reg_user', u);
-                localStorage.setItem('reg_pass', p);
-                location.reload();
+            const u = document.getElementById('userInput').value;
+            if(u) {
+                localStorage.setItem('user', u);
+                document.getElementById('authModal').style.display = 'none';
+                document.getElementById('navUser').innerText = u;
             }
         }
 
-        function setupUI(u) {
-            document.getElementById('navUser').innerText = u;
-            document.getElementById('drawerUser').innerText = u;
-            
-            // Admin Check
-            if(u.toLowerCase() === "jonny" && localStorage.getItem('reg_pass') === "Jonny678!") {
-                document.getElementById('adminSection').style.display = 'block';
+        function promoteSelf() {
+            const u = localStorage.getItem('user');
+            if (u && db) {
+                db.ref('users/' + u).update({ is_seller: true });
+                alert("You are now a seller!");
             }
         }
 
-        function checkOnlineStatus(username) {
-            // Check Firebase for seller status
-            db.ref('users/' + username).on('value', (snapshot) => {
-                const data = snapshot.val();
-                if (data && data.is_seller) {
-                    document.getElementById('sellerTab').style.display = 'block';
-                    setupSellerSlots(data.seller_tier);
-                }
-            });
-        }
-
-        function promoteUser() {
-            const target = document.getElementById('promoTarget').value;
-            const tier = document.getElementById('promoTier').value;
-            if(target) {
-                db.ref('users/' + target).update({
-                    is_seller: true,
-                    seller_tier: tier
-                });
-                alert(target + " promoted!");
-            }
-        }
-
-        function setupSellerSlots(tier) {
-            const con = document.getElementById('slotContainer');
-            con.innerHTML = "";
-            let count = tier === '1' ? 2 : tier === '2' ? 5 : 10;
-            for(let i=1; i<=count; i++) {
-                con.innerHTML += `<div class="slot-card"><small>Slot ${i}</small><select>${ITEMS.map(it=>`<option>${it}</option>`).join('')}</select></div>`;
-            }
-        }
-        
-        function saveSlots() {
-            alert("Items saved to online market!");
-        }
-
-        function setupEmojis() {
-            const p = document.getElementById('emojiPicker');
-            emojis.forEach(e => {
-                let s = document.createElement('span'); s.innerText = e; s.style.cursor="pointer";
-                s.onclick = () => { document.getElementById('navEmoji').innerText=e; };
-                p.appendChild(s);
-            });
-        }
-
-        function showTab(id, btn) {
-            document.querySelectorAll('.category-view').forEach(v => v.classList.remove('active'));
-            document.querySelectorAll('.menu-item').forEach(m => m.classList.remove('active'));
+        function show(id) {
+            document.querySelectorAll('.category-view').forEach(el => el.classList.remove('active'));
             document.getElementById(id).classList.add('active');
-            btn.classList.add('active');
         }
 
-        function toggleDrawer() { document.getElementById('drawer').classList.toggle('open'); document.getElementById('overlay').style.display = document.getElementById('drawer').classList.contains('open') ? 'block' : 'none'; }
-        function signOut() { localStorage.clear(); location.reload(); }
+        window.onload = () => {
+            if(localStorage.getItem('user')) {
+                document.getElementById('authModal').style.display = 'none';
+                document.getElementById('navUser').innerText = localStorage.getItem('user');
+            }
+        };
     </script>
 </body>
 </html>
