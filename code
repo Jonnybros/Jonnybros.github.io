@@ -1,0 +1,28 @@
+<!-- Example of a Product Card -->
+<div class="product-card">
+  <img src="item-photo.jpg" alt="Mechanical Pencil" style="width:100%">
+  <h3>Mechanical Pencil</h3>
+  <p class="price">$1.00</p>
+  <p>Meet at: The Cafeteria Trees</p>
+  <!-- Link this button to your Google Form -->
+  <a href="YOUR_GOOGLE_FORM_LINK" class="buy-button">Reserve & Meet Up</a>
+</div>
+
+<style>
+  .product-card {
+    border: 2px solid #ddd;
+    border-radius: 15px; /* Rounded corners look better on iPads */
+    padding: 20px;
+    text-align: center;
+    max-width: 300px;
+  }
+  .buy-button {
+    background-color: #4CAF50;
+    color: white;
+    padding: 15px 25px; /* Big button for easy tapping */
+    text-decoration: none;
+    border-radius: 10px;
+    display: inline-block;
+    font-weight: bold;
+  }
+</style>
