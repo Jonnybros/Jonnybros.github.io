@@ -1,210 +1,89 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
+    <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>School Marketplace</title>
     <style>
         /* Discord Theme Colors */
-        body { background-color: #313338; color: #dbdee1; font-family: sans-serif; margin: 0; padding: 20px; }
-        
-        /* Category Navigation Bar */
-        .category-bar { display: flex; gap: 10px; margin-bottom: 25px; overflow-x: auto; padding: 10px 0; border-bottom: 1px solid #1e1f22; }
-        .cat-btn { 
-            background-color: #2b2d31; color: #949ba4; border: none; padding: 10px 20px; 
-            border-radius: 5px; cursor: pointer; white-space: nowrap; font-weight: bold; font-size: 16px;
-        }
-        .cat-btn:hover, .cat-btn.active { background-color: #5865f2; color: white; }
-
-        /* Item Grid */
-        .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 15px; }
-        .card { background-color: #2b2d31; padding: 16px; border-radius: 8px; border: 1px solid #1e1f22; display: block; position: relative; }
-        .card img { width: 100%; border-radius: 4px; height: 120px; object-fit: cover; background: #1e1f22; }
-        h3 { margin: 10px 0 5px; font-size: 18px; color: white; }
-        .seller-info { font-size: 12px; color: #b5bac1; margin-bottom: 10px; }
-        .price { color: #23a55a; font-weight: bold; font-size: 20px; margin-bottom: 15px; }
-        .btn { background-color: #5865f2; color: white; padding: 12px; border: none; border-radius: 3px; cursor: pointer; width: 100%; font-weight: bold; }
-
-        /* Discord Modal */
-        .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); justify-content: center; align-items: center; z-index: 1000; }
-        .modal-content { background-color: #313338; padding: 32px; border-radius: 8px; width: 90%; max-width: 400px; text-align: center; }
-        input { width: 100%; padding: 12px; background: #1e1f22; border: none; border-radius: 3px; color: white; margin: 10px 0; box-sizing: border-box; }
-        
-        .hidden { display: none; }
-    </style>
-</head>
-<body>
-
-<header style="text-align: left; margin-bottom: 20px;">
-    <h1 style="color:white; margin:0;"># school-marketplace</h1>
-    <p style="color:#949ba4; margin:5px 0 0;">Welcome to the trade channel.</p>
-</header>
-
-<div class="category-bar">
-    <button class="cat-btn active" onclick="filterItems('all', this)">All</button>
-    <button class="cat-btn" onclick="filterItems('chips', this)">🍟 Chips</button>
-    <button class="cat-btn" onclick="filterItems('soda', this)">🥤 Soda</button>
-    <button class="cat-btn" onclick="filterItems('fidgets', this)">🕹️ Fidgets</button>
-</div>
-
-<div class="grid">
-    <!-- Example Item: Chips -->
-    <div class="card" data-category="chips">
-        <img src="your-chips-image.jpg" alt="Chips">
-        <h3>Cool Ranch Doritos</h3>
-        <p class="seller-info">Sold by @User123</p>
-        <p class="price">$1.50</p>
-        <button class="btn" onclick="handleBuy('Cool Ranch Doritos')">Reserve</button>
-    </div>
-
-    <!-- Example Item: Soda -->
-    <div class="card" data-category="soda">
-        <img src="your-soda-image.jpg" alt="Soda">
-        <h3>Mountain Dew</h3>
-        <p class="seller-info">Sold by @DrinkMaster</p>
-        <p class="price">$1.25</p>
-        <button class="btn" onclick="handleBuy('Mountain Dew')">Reserve</button>
-    </div>
-
-    <!-- Example Item: Fidgets -->
-    <div class="card" data-category="fidgets">
-        <img src="your-fidget-image.jpg" alt="Fidget">
-        <h3>Metal Spinner</h3>
-        <p class="seller-info">Sold by @FidgetBoss</p>
-        <p class="price">$5.00</p>
-        <button class="btn" onclick="handleBuy('Metal Spinner')">Reserve</button>
-    </div>
-</div>
-
-<!-- Sign Up Modal -->
-<div id="authModal" class="modal-overlay">
-    <div class="modal-content">
-        <h2 style="color:white; margin:0;">Create Account</h2>
-        <p style="color:#b5bac1;">Register to start reserving items.</p>
-        <input type="text" id="username" placeholder="Username">
-        <input type="password" id="password" placeholder="Password">
-        <button class="btn" onclick="finishSignup()">Sign Up</button>
-    </div>
-</div>
-
-<script>
-    function filterItems(category, btn) {
-        document.querySelectorAll('.cat-btn').forEach(b => b.classList.remove('active'));
-        btn.classList.add('active');
-
-        const cards = document.querySelectorAll('.card');
-        cards.forEach(card => {
-            if (category === 'all' || card.getAttribute('data-category') === category) {
-                card.style.display = "block";
-            } else {
-                card.style.display = "none";
-            }
-        });
-    }
-
-    function handleBuy(itemName) {
-        if (localStorage.getItem('isLoggedIn')) {
-            alert("Reserved " + itemName + "! Meet the seller at lunch with your cash.");
-        } else {
-            document.getElementById('authModal').style.display = 'flex';
-        }
-    }
-
-    function finishSignup() {
-        const user = document.getElementById('username').value;
-        if (user) {
-            localStorage.setItem('isLoggedIn', 'true');
-            localStorage.setItem('username', user);
-            alert("Welcome, " + user + "! You can now reserve items.");
-            document.getElementById('authModal').style.display = 'none';
-        }
-    }
-</script>
-
-</body>
-</html>
-<!DOCTYPE html>
-<html>
-<head>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <style>
-        /* Discord Dark Theme */
         body { 
             background-color: #313338; 
             color: #dbdee1; 
-            font-family: 'gg sans', 'Noto Sans', sans-serif; 
+            font-family: 'gg sans', 'Helvetica Neue', Arial, sans-serif; 
             margin: 0; 
             display: flex; 
             flex-direction: column;
             align-items: center; 
             justify-content: center; 
-            height: 100vh; 
+            height: 100vh;
         }
 
-        h1 { color: white; margin-bottom: 30px; font-size: 28px; }
+        h1 { color: white; margin-bottom: 40px; font-size: 32px; }
 
         /* Centered Box Container */
         .category-container { 
             display: flex; 
-            gap: 20px; 
+            gap: 24px; 
             flex-wrap: wrap; 
             justify-content: center; 
-            width: 90%;
-            max-width: 900px;
+            width: 95%;
+            max-width: 1000px;
         }
 
         /* Large Category Boxes */
         .cat-box { 
             background-color: #2b2d31; 
-            width: 250px; 
-            height: 250px; 
-            border-radius: 12px; 
+            width: 280px; 
+            height: 280px; 
+            border-radius: 16px; 
             display: flex; 
             flex-direction: column;
             align-items: center; 
             justify-content: center; 
             cursor: pointer;
-            transition: transform 0.2s, background-color 0.2s;
+            transition: all 0.2s ease-in-out;
             border: 2px solid transparent;
             text-decoration: none;
             color: white;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
         }
 
-        /* Discord "Blurple" hover effect */
+        /* Hover and Tap Effects */
         .cat-box:hover { 
             background-color: #35373c; 
-            transform: translateY(-5px);
-            border-color: #5865f2; 
+            transform: translateY(-8px);
+            border-color: #5865f2; /* Discord Blurple */
         }
-
         .cat-box:active { transform: scale(0.95); }
 
-        .cat-icon { font-size: 60px; margin-bottom: 15px; }
-        .cat-name { font-size: 24px; font-weight: bold; text-transform: uppercase; letter-spacing: 1px; }
+        .cat-icon { font-size: 80px; margin-bottom: 20px; }
+        .cat-name { font-size: 26px; font-weight: bold; text-transform: uppercase; letter-spacing: 1px; }
 
-        /* Responsive for smaller iPads/Phones */
+        /* Responsive Fix for small screens/Portrait Mode */
         @media (max-width: 600px) {
-            .cat-box { width: 100%; height: 150px; flex-direction: row; gap: 20px; }
-            body { height: auto; padding: 40px 0; }
+            .cat-box { width: 90%; height: 180px; flex-direction: row; gap: 30px; }
+            body { height: auto; padding: 50px 0; }
         }
     </style>
 </head>
 <body>
 
-    <h1>Select a Category</h1>
+    <h1># school-marketplace</h1>
 
     <div class="category-container">
-        <!-- Chips Box -->
+        <!-- Chips Section -->
         <a href="chips.html" class="cat-box">
             <div class="cat-icon">🍟</div>
             <div class="cat-name">Chips</div>
         </a>
 
-        <!-- Soda Box -->
+        <!-- Soda Section -->
         <a href="soda.html" class="cat-box">
             <div class="cat-icon">🥤</div>
             <div class="cat-name">Soda</div>
         </a>
 
-        <!-- Fidgets Box -->
+        <!-- Fidgets Section -->
         <a href="fidgets.html" class="cat-box">
             <div class="cat-icon">🕹️</div>
             <div class="cat-name">Fidgets</div>
@@ -212,4 +91,3 @@
     </div>
 
 </body>
-</html>
