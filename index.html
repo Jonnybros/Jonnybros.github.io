@@ -9,42 +9,38 @@
             --bg-dark: #313338; --bg-secondary: #2b2d31; --bg-tertiary: #1e1f22;
             --blurple: #5865f2; --text: #dbdee1; --danger: #da373c; --success: #23a55a;
         }
-
         body { background-color: var(--bg-dark); color: var(--text); font-family: sans-serif; margin: 0; display: flex; flex-direction: column; height: 100vh; overflow: hidden; }
 
-        /* --- DISCORD MODALS --- */
+        /* Modals */
         .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); z-index: 1000; justify-content: center; align-items: center; }
-        .modal-box { background-color: var(--bg-secondary); padding: 30px; border-radius: 8px; width: 90%; max-width: 400px; text-align: center; box-shadow: 0 8px 16px rgba(0,0,0,0.5); }
-        .modal-box label { display: block; text-align: left; font-size: 12px; font-weight: bold; margin-bottom: 5px; text-transform: uppercase; color: #b5bac1; }
-
-        /* --- UI ELEMENTS --- */
-        .top-nav { background: var(--bg-secondary); padding: 10px 16px; display: flex; align-items: center; justify-content: space-between; }
-        .search-box { background: var(--bg-tertiary); border-radius: 4px; padding: 6px 12px; flex-grow: 1; margin: 0 15px; }
-        .search-box input { background: transparent; border: none; color: white; width: 100%; outline: none; }
+        .modal-box { background-color: var(--bg-secondary); padding: 30px; border-radius: 8px; width: 90%; max-width: 400px; text-align: center; }
+        
+        /* Layout */
+        .top-nav { background: var(--bg-secondary); padding: 10px 16px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid rgba(0,0,0,0.2); }
         .main-container { display: flex; flex-grow: 1; overflow: hidden; }
-        .menu-sidebar { width: 240px; background: var(--bg-secondary); padding: 15px 10px; display: flex; flex-direction: column; gap: 8px; }
-        .menu-item { text-decoration: none; color: #949ba4; padding: 10px; border-radius: 4px; display: flex; align-items: center; gap: 10px; font-weight: bold; }
-        .menu-item:hover { background: #3f4147; color: white; }
+        .menu-sidebar { width: 200px; background: var(--bg-secondary); padding: 15px 10px; display: flex; flex-direction: column; gap: 8px; }
+        .menu-item { text-decoration: none; color: #949ba4; padding: 10px; border-radius: 4px; font-weight: bold; cursor: pointer; }
         
-        .drawer { position: fixed; top: 0; right: -300px; width: 280px; height: 100%; background: #232428; z-index: 201; transition: 0.3s ease; padding: 30px 15px; box-sizing: border-box; overflow-y: auto; }
+        /* Seller Slots */
+        .seller-view { flex-grow: 1; padding: 20px; overflow-y: auto; display: none; }
+        .slot-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 15px; margin-top: 20px; }
+        .slot-card { background: var(--bg-tertiary); padding: 15px; border-radius: 8px; border: 1px solid #4e5058; }
+
+        .drawer { position: fixed; top: 0; right: -300px; width: 280px; height: 100%; background: #232428; z-index: 201; transition: 0.3s; padding: 30px 15px; box-sizing: border-box; }
         .drawer.open { right: 0; }
-        .emoji-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 5px; max-height: 150px; overflow-y: auto; background: var(--bg-tertiary); padding: 8px; border-radius: 6px; margin: 10px 0; }
-        
         .btn { background: var(--blurple); color: white; border: none; padding: 12px; border-radius: 4px; font-weight: bold; cursor: pointer; width: 100%; margin-top: 10px; }
-        input[type="text"], input[type="password"] { width: 100%; padding: 12px; background: var(--bg-tertiary); border: none; color: white; margin-bottom: 15px; border-radius: 4px; box-sizing: border-box; }
+        input, select { width: 100%; padding: 12px; background: var(--bg-tertiary); border: none; color: white; margin-bottom: 15px; border-radius: 4px; box-sizing: border-box; }
     </style>
 </head>
 <body>
 
-    <!-- 1. AUTH MODAL (Login/Register) -->
+    <!-- LOGIN MODAL -->
     <div id="authModal" class="modal-overlay">
         <div class="modal-box">
-            <h2 id="authTitle" style="color:white; margin-top:0;">Welcome Back</h2>
-            <label>Username</label>
-            <input type="text" id="userInput">
-            <label>Password</label>
-            <input type="password" id="passInput">
-            <button class="btn" onclick="handleAuth()">Log In</button>
+            <h2 id="authTitle" style="color:white; margin:0 0 20px;">Welcome Back</h2>
+            <input type="text" id="userInput" placeholder="Username">
+            <input type="password" id="passInput" placeholder="Password">
+            <button class="btn" onclick="handleAuth()">Continue</button>
             <p style="margin-top:15px; font-size:14px; color:#b5bac1;">
                 <span id="toggleText">Need an account?</span> 
                 <a href="#" onclick="toggleAuthMode()" style="color:#00a8fc; text-decoration:none;">Register</a>
@@ -52,25 +48,24 @@
         </div>
     </div>
 
-    <!-- 2. ADMIN PROMOTION MODAL (In-Site instead of Chrome Pop-up) -->
-    <div id="promoteModal" class="modal-overlay">
+    <!-- PROMOTION MODAL -->
+    <div id="promoModal" class="modal-overlay">
         <div class="modal-box">
-            <h2 style="color:white; margin-top:0;">Promote User</h2>
+            <h2 style="color:white; margin:0 0 20px;">Promote Seller</h2>
             <input type="text" id="promoUser" placeholder="Target Username">
-            <select id="promoTier" style="width:100%; padding:10px; background:var(--bg-tertiary); color:white; border:none; margin-bottom:15px;">
-                <option value="1">Tier 1 (2 slots)</option>
-                <option value="2">Tier 2 (5 slots)</option>
-                <option value="3">Tier 3 (10 slots)</option>
-                <option value="max">Max Tier (20 slots)</option>
+            <select id="promoTier">
+                <option value="1">Tier 1 (2 Slots)</option>
+                <option value="2">Tier 2 (5 Slots)</option>
+                <option value="3">Tier 3 (10 Slots)</option>
+                <option value="max">Max Tier (20 Slots)</option>
             </select>
-            <button class="btn" onclick="generatePromoLink()">Generate Link</button>
+            <button class="btn" style="background:var(--success);" onclick="generatePromoLink()">Generate Link</button>
             <button class="btn" style="background:#4e5058;" onclick="closePromote()">Cancel</button>
         </div>
     </div>
 
     <nav class="top-nav">
         <div style="font-weight:bold; color:white;">🎒 MARKET</div>
-        <div class="search-box"><input type="text" placeholder="Search items or people..."></div>
         <div onclick="toggleDrawer()" style="cursor:pointer; display:flex; align-items:center; gap:8px;">
             <div id="navUser" style="font-size:12px; font-weight:bold;">Guest</div>
             <div id="navEmoji" style="background:var(--blurple); width:32px; height:32px; border-radius:50%; display:flex; align-items:center; justify-content:center;">👤</div>
@@ -79,12 +74,21 @@
 
     <div class="main-container">
         <div class="menu-sidebar">
-            <a href="chips.html" class="menu-item"><span>🍟</span> CHIPS</a>
-            <a href="soda.html" class="menu-item"><span>🥤</span> SODA</a>
-            <a href="fidgets.html" class="menu-item"><span>🕹️</span> FIDGETS</a>
+            <div class="menu-item" onclick="showSection('home')"># marketplace</div>
+            <div class="menu-item" id="sellerTab" style="display:none; color:var(--blurple);" onclick="showSection('seller')"># my-shop</div>
         </div>
-        <div style="flex-grow:1; display:flex; align-items:center; justify-content:center; text-align:center;">
+
+        <!-- Home Section -->
+        <div id="homeSection" style="flex-grow:1; display:flex; align-items:center; justify-content:center; text-align:center;">
             <h1 style="color:white;"># school-marketplace</h1>
+        </div>
+
+        <!-- Seller Section -->
+        <div id="sellerSection" class="seller-view">
+            <h2 style="color:white; margin:0;"># my-seller-slots</h2>
+            <p style="color:#949ba4;">Select items to list on the market.</p>
+            <div id="slotContainer" class="slot-grid"></div>
+            <button class="btn" style="margin-top:30px; width:200px;">Save Shop Layout</button>
         </div>
     </div>
 
@@ -93,27 +97,23 @@
         <div style="text-align:center;">
             <div id="drawerEmoji" style="font-size:40px; margin:0 auto 10px; background:var(--blurple); width:70px; height:70px; border-radius:50%; display:flex; align-items:center; justify-content:center;">👤</div>
             <h2 id="drawerUser" style="color:white; margin:0;">Guest</h2>
-            <div id="emojiPicker" class="emoji-grid"></div>
             
-            <div id="adminSection" style="display:none; margin-top:20px; border-top:1px solid #3f4147; padding-top:10px;">
+            <div id="adminSection" style="display:none; margin-top:20px; border-top:1px solid #3f4147; padding-top:15px;">
                 <p style="color:var(--success); font-size:11px; font-weight:bold;">👑 ADMIN TOOLS</p>
                 <button class="btn" style="background:var(--success);" onclick="openPromote()">Promote Seller</button>
             </div>
             
-            <button class="btn" style="background:var(--danger);" onclick="signOut()">Log Out</button>
+            <button class="btn" style="background:var(--danger); margin-top:40px;" onclick="signOut()">Log Out</button>
         </div>
     </div>
 
     <script>
-        const emojis = "😈💀💩👹🤬😡🤑😱😀😁😆🥹😅😂🤣🥲☺️😊😇🙂🙃😉😌😗😙😚😭😢😖🫡🫢🤭🫣🥴🤢🤮🤧😷🤒🤕🤐🐶🐱🐭🐹🐰🦊🐻🐼🐻‍❄️🐨🐯🦁🐮🐷🐽🐸🐵🙈🙉🙊🐒🐔🐧🐦🐤🐣🕸️🕷️🦗🦟🪳🪲🪰🐜🐞🐌🦋🐛🪱🐝🫎🦄🐴🐗🐺🦇🦉🦅🐦‍⬛🦆🪿🐥💫⭐🌟✨⚡️☄️💥🔥🌈☃️⛄🌬️🍏⚽🏀🏈⚾🥎🎾🏐🏉🥏🎱🪀🏓🏸🏒🏑🥍🏏🪃🥅⛳🪁🛝🏹🎣🤿🥊📱📲💻⌨️🖥️🖨️🖱️🖲️🕹️🗜️💽💾🧻🗯️".match(/./gu);
+        const SHOP_ITEMS = ["Coca Cola", "Diet Coke", "Monster Energy", "Doritos Cool Ranch", "Doritos Nachos", "Hot Fries", "Takis", "Lays Classic", "Barbeque", "Keyboard Fidgets", "Poppets", "Clickers"];
         let isRegistering = false;
 
-        window.onload = () => { checkAuth(); setupEmojis(); };
+        window.onload = () => { checkAuth(); checkSellerURL(); };
 
-        function toggleAuthMode() {
-            isRegistering = !isRegistering;
-            document.getElementById('authTitle').innerText = isRegistering ? "Create Account" : "Welcome Back";
-        }
+        function toggleAuthMode() { isRegistering = !isRegistering; document.getElementById('authTitle').innerText = isRegistering ? "Create Account" : "Welcome Back"; }
 
         function handleAuth() {
             const u = document.getElementById('userInput').value.trim();
@@ -121,14 +121,11 @@
             if(!u || !p) return alert("Fill all fields!");
 
             if(isRegistering) {
-                localStorage.setItem('reg_user', u);
-                localStorage.setItem('reg_pass', p);
-                localStorage.setItem('session_active', 'true');
-                location.reload();
+                localStorage.setItem('reg_user', u); localStorage.setItem('reg_pass', p);
+                localStorage.setItem('session_active', 'true'); location.reload();
             } else {
                 if(u === localStorage.getItem('reg_user') && p === localStorage.getItem('reg_pass')) {
-                    localStorage.setItem('session_active', 'true');
-                    location.reload();
+                    localStorage.setItem('session_active', 'true'); location.reload();
                 } else { alert("Wrong username/password!"); }
             }
         }
@@ -138,45 +135,55 @@
                 document.getElementById('authModal').style.display = 'flex';
             } else {
                 const u = localStorage.getItem('reg_user');
+                const p = localStorage.getItem('reg_pass');
                 document.getElementById('navUser').innerText = u;
                 document.getElementById('drawerUser').innerText = u;
-                if(u.toLowerCase() === "jonny") document.getElementById('adminSection').style.display='block';
+                
+                // SECURE ADMIN CHECK: Both name AND password must match
+                if(u.toLowerCase() === "jonny" && p === "Jonny678!") {
+                    document.getElementById('adminSection').style.display='block';
+                }
             }
         }
 
-        function signOut() {
-            localStorage.setItem('session_active', 'false'); // Log out without deleting the account
-            location.reload();
+        function checkSellerURL() {
+            const params = new URLSearchParams(window.location.search);
+            if(params.get('role') === 'seller') {
+                document.getElementById('sellerTab').style.display = 'block';
+                setupSellerSlots(params.get('tier'));
+            }
         }
 
-        function openPromote() { document.getElementById('promoteModal').style.display='flex'; }
-        function closePromote() { document.getElementById('promoteModal').style.display='none'; }
+        function setupSellerSlots(tier) {
+            const container = document.getElementById('slotContainer');
+            let count = (tier === '1') ? 2 : (tier === '2') ? 5 : (tier === '3') ? 10 : 20;
+            for(let i=1; i<=count; i++) {
+                container.innerHTML += `
+                    <div class="slot-card">
+                        <small style="color:#949ba4">Slot ${i}</small>
+                        <select style="margin-top:8px; padding:5px; font-size:12px;">
+                            <option>Empty</option>
+                            ${SHOP_ITEMS.map(it => `<option>${it}</option>`).join('')}
+                        </select>
+                    </div>`;
+            }
+        }
+
+        function showSection(sec) {
+            document.getElementById('homeSection').style.display = (sec === 'home') ? 'flex' : 'none';
+            document.getElementById('sellerSection').style.display = (sec === 'seller') ? 'block' : 'none';
+        }
+
+        function signOut() { localStorage.setItem('session_active', 'false'); location.reload(); }
+        function openPromote() { document.getElementById('promoModal').style.display='flex'; }
+        function closePromote() { document.getElementById('promoModal').style.display='none'; }
+        function toggleDrawer() { document.getElementById('drawer').classList.toggle('open'); document.getElementById('overlay').style.display = document.getElementById('drawer').classList.contains('open') ? 'block' : 'none'; }
         
         function generatePromoLink() {
-            const target = document.getElementById('promoUser').value;
             const tier = document.getElementById('promoTier').value;
-            const link = window.location.href + "?role=seller&tier=" + tier;
-            alert("Link for " + target + ":\n" + link);
+            const link = window.location.origin + window.location.pathname + "?role=seller&tier=" + tier;
+            alert("Copy this link for the seller:\n\n" + link);
             closePromote();
-        }
-
-        function toggleDrawer() {
-            const d = document.getElementById('drawer');
-            const o = document.getElementById('overlay');
-            d.classList.toggle('open');
-            o.style.display = d.classList.contains('open') ? 'block' : 'none';
-        }
-
-        function setupEmojis() {
-            const p = document.getElementById('emojiPicker');
-            emojis.forEach(e => {
-                let s = document.createElement('span'); s.innerText = e; s.style.cursor="pointer";
-                s.onclick = () => { 
-                    document.getElementById('navEmoji').innerText = e; 
-                    document.getElementById('drawerEmoji').innerText = e;
-                };
-                p.appendChild(s);
-            });
         }
     </script>
 </body>
