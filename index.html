@@ -1,22 +1,26 @@
-<!-- 1. The Firebase "Brains" (Correct Links) -->
+<!-- Load the core Firebase App first -->
 <script src="https://gstatic.com"></script>
+<!-- Load the Realtime Database second -->
 <script src="https://gstatic.com"></script>
 
 <script>
-  // 2. Your Config (Only write this ONCE)
+  // Your Firebase config
   const firebaseConfig = {
     apiKey: "AIzaSyBZTGndL235B-c6mYft3mblBz6eN4vqRLM",
     authDomain: "school-market-42bf2.firebaseapp.com",
-    databaseURL: "https://school-market-42bf2-default-rtdb.firebaseio.com",
+    databaseURL: "https://firebaseio.com",
     projectId: "school-market-42bf2",
     storageBucket: "school-market-42bf2.firebasestorage.app",
     messagingSenderId: "849244125573",
     appId: "1:849244125573:web:cca81082d1204de4db6cec"
   };
 
-  // 3. Connect to the online database
-  firebase.initializeApp(firebaseConfig);
+  // Connect using the 'compat' way
+  if (!firebase.apps.length) {
+    firebase.initializeApp(firebaseConfig);
+  }
   const db = firebase.database();
+</script>
 
   // 4. Admin Function
   function promoteUser(targetUser, tier) {
