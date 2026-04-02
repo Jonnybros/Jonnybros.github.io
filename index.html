@@ -90,3 +90,54 @@
 
 </body>
 </html>
+html
+<!DOCTYPE html>
+<html>
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        body { background-color: #1e1f22; color: #dbdee1; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; margin: 0; padding: 20px; }
+        header { background-color: #2b2d31; padding: 20px; border-radius: 8px; margin-bottom: 20px; text-align: center; }
+        h1 { color: white; margin: 0; font-size: 24px; }
+        
+        /* Seller Approval Section */
+        .admin-box { background-color: #232428; border: 1px solid #5865f2; padding: 15px; border-radius: 8px; margin-bottom: 20px; text-align: center; }
+        
+        .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px; }
+        
+        /* Discord-style Card */
+        .card { background-color: #2b2d31; padding: 16px; border-radius: 8px; transition: background 0.2s; }
+        .card:hover { background-color: #313338; }
+        .seller-badge { background-color: #5865f2; color: white; font-size: 10px; padding: 2px 6px; border-radius: 4px; text-transform: uppercase; vertical-align: middle; }
+        
+        .price { color: #23a55a; font-weight: bold; font-size: 18px; margin: 10px 0; }
+        
+        .btn { background-color: #5865f2; color: white; padding: 10px; text-decoration: none; border-radius: 3px; display: block; text-align: center; font-weight: 500; }
+        .btn:hover { background-color: #4752c4; }
+        .btn-secondary { background-color: #4e5058; margin-top: 10px; font-size: 14px; }
+    </style>
+</head>
+<body>
+
+<header>
+    <h1>School Marketplace</h1>
+</header>
+
+<div class="admin-box">
+    <p>Want to sell items? Fill out the application to be approved by an Admin.</p>
+    <a href="YOUR_APPLICATION_FORM_LINK" class="btn btn-secondary">Apply to be a Seller</a>
+</div>
+
+<div class="grid">
+    <!-- Item Card -->
+    <div class="card">
+        <h3>Mechanical Pencil <span class="seller-badge">Verified Seller</span></h3>
+        <p style="color: #b5bac1;">Sold by: User123</p>
+        <p class="price">$1.00</p>
+        <p>Meetup: Library at 12:30 PM</p>
+        <a href="YOUR_RESERVATION_FORM_LINK" class="btn">Reserve Item</a>
+    </div>
+</div>
+
+</body>
+</html>
