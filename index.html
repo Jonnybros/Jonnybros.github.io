@@ -5,9 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>School Marketplace</title>
 
-    <!-- 1. FIREBASE BRAINS -->
-<script src="https://cloudflare.com"></script>
-<script src="https://cloudflare.com"></script>
+    <!-- 1. RELIABLE FIREBASE LINKS (Cloudflare CDN) -->
+    <script src="https://cloudflare.com"></script>
+    <script src="https://cloudflare.com"></script>
 
     <style>
         :root { --bg: #313338; --card: #2b2d31; --dark: #1e1f22; --blurple: #5865f2; --text: #dbdee1; --success: #23a55a; --danger: #da373c; }
@@ -18,11 +18,11 @@
         .modal-box { background-color: var(--card); padding: 25px; border-radius: 8px; width: 300px; text-align: center; box-shadow: 0 8px 16px rgba(0,0,0,0.5); }
         
         /* Layout */
-        .top-nav { background: var(--card); padding: 10px 16px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid #1e1f22; height: 50px; box-sizing: border-box; }
-        .main-container { display: flex; flex-grow: 1; overflow: hidden; height: calc(100vh - 50px); }
+        .top-nav { background: var(--card); padding: 10px 16px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid #1e1f22; }
+        .main-container { display: flex; flex-grow: 1; overflow: hidden; }
         .menu-sidebar { width: 220px; background: var(--card); padding: 15px 10px; display: flex; flex-direction: column; gap: 8px; }
         .menu-item { text-decoration: none; color: #949ba4; padding: 10px; border-radius: 4px; font-weight: bold; cursor: pointer; }
-        .menu-item.active { background: #3f4147; color: white; }
+        .menu-item:hover, .menu-item.active { background: #3f4147; color: white; }
 
         .content-area { flex-grow: 1; padding: 20px; overflow-y: auto; text-align: center; }
         .category-view { display: none; }
@@ -38,10 +38,9 @@
 </head>
 <body>
 
-    <!-- AUTH MODAL -->
     <div id="authModal" class="modal-overlay">
         <div class="modal-box">
-            <h2 id="authTitle" style="color:white; margin:0;">Welcome</h2>
+            <h2 style="color:white; margin:0;">Welcome</h2>
             <input type="text" id="userInput" placeholder="Username">
             <input type="password" id="passInput" placeholder="Password">
             <button class="btn" onclick="handleAuth()">Log In / Register</button>
@@ -53,7 +52,7 @@
         <div style="font-weight:bold; color:white;">🎒 MARKET</div>
         <div onclick="toggleDrawer()" style="cursor:pointer; display:flex; align-items:center; gap:8px;">
             <div id="navUser" style="font-size:12px;">Guest</div>
-            <div id="navEmoji" style="background:var(--blurple); width:30px; height:30px; border-radius:50%; display:flex; align-items:center; justify-content:center;">👤</div>
+            <div id="navEmoji" style="background:var(--blurple); width:32px; height:32px; border-radius:50%; display:flex; align-items:center; justify-content:center;">👤</div>
         </div>
     </nav>
 
@@ -65,17 +64,15 @@
             <div class="menu-item" onclick="showTab('fidgets', this)">🕹️ Fidgets</div>
             <div id="sellerTab" class="menu-item" style="display:none; color:var(--success);" onclick="showTab('seller', this)">🛠️ Seller Setup</div>
         </div>
-
         <div class="content-area">
             <div id="home" class="category-view active"><h1># school-marketplace</h1><p>Online Database Connected.</p></div>
             <div id="chips" class="category-view"><h2>🍟 Chips</h2><p>Items will appear here.</p></div>
             <div id="soda" class="category-view"><h2>🥤 Soda</h2><p>Items will appear here.</p></div>
             <div id="fidgets" class="category-view"><h2>🕹️ Fidgets</h2><p>Items will appear here.</p></div>
-            
             <div id="seller" class="category-view">
                 <h2>🛠️ Seller Dashboard</h2>
                 <div id="slotContainer" style="display:grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap:10px;"></div>
-                <button class="btn" style="width:200px; margin-top:20px;" onclick="alert('Listings Updated!')">Update Shop</button>
+                <button class="btn" onclick="alert('Listings Updated!')">Update Shop</button>
             </div>
         </div>
     </div>
@@ -85,13 +82,11 @@
             <div id="drawerEmoji" style="font-size:40px; margin:0 auto 10px; background:var(--blurple); width:70px; height:70px; border-radius:50%; display:flex; align-items:center; justify-content:center;">👤</div>
             <h3 id="drawerUser">Guest</h3>
             <div id="emojiPicker" class="emoji-grid"></div>
-            
             <div id="adminSection" style="display:none; border-top:1px solid #444; padding-top:10px; margin-top:10px;">
                 <p style="color:var(--success); font-size:10px; font-weight:bold;">👑 ADMIN TOOLS</p>
                 <input type="text" id="promoTarget" placeholder="Username to Promote">
                 <button class="btn" style="background:var(--success);" onclick="promoteUser()">Promote User</button>
             </div>
-            
             <button class="btn" style="background:var(--danger); margin-top:40px;" onclick="signOut()">Log Out</button>
         </div>
     </div>
@@ -111,42 +106,30 @@
         const emojis = "😈💀💩👹🤬😡🤑😱😀😁😆🥹😅😂🤣🥲☺️😊😇".match(/./gu);
         let db = null;
 
-      window.onload = function() {
-    try {
-        if (typeof firebase !== 'undefined') {
-            if (!firebase.apps.length) {
-                firebase.initializeApp(firebaseConfig);
-            }
-            db = firebase.database();
-            
-            // NEW: Force a small write to "wake up" the connection
-            console.log("Attempting to wake up database...");
-            
-            // 1. Immediately show the UI if someone is logged in
-            const u = localStorage.getItem('m_user');
-            if (u) {
-                document.getElementById('authModal').style.display = 'none';
-                setupUI(u);
-                checkSellerStatus(u);
-            }
+        window.onload = function() {
+            try {
+                if (typeof firebase !== 'undefined') {
+                    if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+                    db = firebase.database();
+                    
+                    db.ref(".info/connected").on("value", (snap) => {
+                        const s = document.getElementById("status");
+                        if (snap.val() === true) { s.innerText = "✅ Connected!"; s.style.color = "lime"; }
+                        else { s.innerText = "Connecting..."; s.style.color = "orange"; }
+                    });
 
-            // 2. Change the status to "Connected" as soon as we can read anything
-            db.ref(".info/connected").on("value", (snap) => {
-                const s = document.getElementById("status");
-                if (snap.val() === true) {
-                    s.innerText = "✅ Connected!";
-                    s.style.color = "lime";
+                    const u = localStorage.getItem('m_user');
+                    if (u) {
+                        document.getElementById('authModal').style.display = 'none';
+                        setupUI(u);
+                        checkSellerStatus(u);
+                    }
+                } else {
+                    document.getElementById("status").innerText = "❌ Firebase Script Error";
                 }
-            });
-        } else {
-            document.getElementById("status").innerText = "❌ Firebase Script Error";
-        }
-    } catch (e) { 
-        console.error("Startup Error:", e); 
-    }
-    setupEmojis();
-};
-
+            } catch (e) { console.error(e); }
+            setupEmojis();
+        };
 
         function handleAuth() {
             const u = document.getElementById('userInput').value.trim();
@@ -221,4 +204,3 @@
     </script>
 </body>
 </html>
-
