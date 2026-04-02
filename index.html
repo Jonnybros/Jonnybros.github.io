@@ -5,34 +5,34 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>School Marketplace</title>
     <style>
-        :root {
-            --bg-dark: #313338; --bg-secondary: #2b2d31; --bg-tertiary: #1e1f22;
-            --blurple: #5865f2; --text: #dbdee1; --danger: #da373c; --success: #23a55a;
-        }
-        body { background-color: var(--bg-dark); color: var(--text); font-family: sans-serif; margin: 0; display: flex; flex-direction: column; height: 100vh; overflow: hidden; }
+        :root { --bg: #313338; --card: #2b2d31; --dark: #1e1f22; --blurple: #5865f2; --text: #dbdee1; --success: #23a55a; }
+        body { background-color: var(--bg); color: var(--text); font-family: sans-serif; margin: 0; display: flex; flex-direction: column; height: 100vh; overflow: hidden; }
 
-        /* Modals */
-        .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); z-index: 1000; justify-content: center; align-items: center; }
-        .modal-box { background-color: var(--bg-secondary); padding: 30px; border-radius: 8px; width: 90%; max-width: 400px; text-align: center; }
-        
-        /* Layout */
-        .top-nav { background: var(--bg-secondary); padding: 10px 16px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid rgba(0,0,0,0.2); }
+        /* Navigation */
+        .top-nav { background: var(--card); padding: 10px 16px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid rgba(0,0,0,0.2); }
         .main-container { display: flex; flex-grow: 1; overflow: hidden; }
-        .menu-sidebar { width: 200px; background: var(--bg-secondary); padding: 15px 10px; display: flex; flex-direction: column; gap: 8px; }
+        .menu-sidebar { width: 220px; background: var(--card); padding: 15px 10px; display: flex; flex-direction: column; gap: 8px; border-right: 1px solid rgba(0,0,0,0.2); }
         .menu-item { text-decoration: none; color: #949ba4; padding: 10px; border-radius: 4px; font-weight: bold; cursor: pointer; }
         .menu-item:hover, .menu-item.active { background: #3f4147; color: white; }
         
-        /* Seller View */
-        .seller-view { flex-grow: 1; padding: 20px; overflow-y: auto; display: none; }
-        .slot-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 15px; margin-top: 20px; }
-        .slot-card { background: var(--bg-tertiary); padding: 15px; border-radius: 8px; border: 1px solid #4e5058; text-align: center; }
+        /* Content Area */
+        .content-area { flex-grow: 1; padding: 20px; overflow-y: auto; text-align: center; }
+        .category-view { display: none; }
+        .category-view.active { display: block; }
 
-        .drawer { position: fixed; top: 0; right: -300px; width: 280px; height: 100%; background: #232428; z-index: 201; transition: 0.3s; padding: 30px 15px; box-sizing: border-box; }
+        /* Seller Slots */
+        .slot-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 10px; margin-top: 20px; }
+        .slot-card { background: var(--dark); padding: 10px; border-radius: 8px; border: 1px solid #4e5058; }
+
+        /* Modals & Drawer */
+        .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); z-index: 1000; justify-content: center; align-items: center; }
+        .modal-box { background-color: var(--card); padding: 25px; border-radius: 8px; width: 300px; text-align: center; }
+        .drawer { position: fixed; top: 0; right: -300px; width: 280px; height: 100%; background: #232428; z-index: 201; transition: 0.3s; padding: 20px; box-sizing: border-box; }
         .drawer.open { right: 0; }
-        .emoji-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 5px; max-height: 150px; overflow-y: auto; background: var(--bg-tertiary); padding: 8px; border-radius: 6px; margin: 10px 0; }
-        
-        .btn { background: var(--blurple); color: white; border: none; padding: 12px; border-radius: 4px; font-weight: bold; cursor: pointer; width: 100%; margin-top: 10px; }
-        input, select { width: 100%; padding: 12px; background: var(--bg-tertiary); border: none; color: white; margin-bottom: 15px; border-radius: 4px; box-sizing: border-box; }
+        .emoji-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 5px; max-height: 120px; overflow-y: auto; background: var(--dark); padding: 8px; border-radius: 6px; margin: 10px 0; }
+
+        .btn { background: var(--blurple); color: white; border: none; padding: 10px; border-radius: 4px; font-weight: bold; cursor: pointer; width: 100%; margin-top: 5px; }
+        input, select { width: 100%; padding: 10px; background: var(--dark); border: none; color: white; margin-bottom: 10px; border-radius: 4px; box-sizing: border-box; }
     </style>
 </head>
 <body>
@@ -40,160 +40,125 @@
     <!-- AUTH MODAL -->
     <div id="authModal" class="modal-overlay">
         <div class="modal-box">
-            <h2 id="authTitle" style="color:white; margin:0 0 20px;">Welcome Back</h2>
+            <h2 id="authTitle" style="color:white;">Welcome</h2>
             <input type="text" id="userInput" placeholder="Username">
             <input type="password" id="passInput" placeholder="Password">
             <button class="btn" onclick="handleAuth()">Continue</button>
-            <p style="margin-top:15px; font-size:14px; color:#b5bac1;">
-                <span id="toggleText">Need an account?</span> 
-                <a href="#" onclick="toggleAuthMode()" style="color:#00a8fc; text-decoration:none;">Register</a>
-            </p>
-        </div>
-    </div>
-
-    <!-- PROMOTION MODAL -->
-    <div id="promoteModal" class="modal-overlay">
-        <div class="modal-box">
-            <h2 style="color:white; margin:0 0 20px;">Promote Seller</h2>
-            <input type="text" id="promoUser" placeholder="Target Username">
-            <select id="promoTier">
-                <option value="1">Tier 1 (2 Slots)</option>
-                <option value="2">Tier 2 (5 Slots)</option>
-                <option value="3">Tier 3 (10 Slots)</option>
-                <option value="max">Max Tier (20 Slots)</option>
-            </select>
-            <button class="btn" style="background:var(--success);" onclick="submitPromotion()">Confirm Promotion</button>
-            <button class="btn" style="background:#4e5058;" onclick="closePromote()">Cancel</button>
+            <p style="font-size:12px; cursor:pointer; color:var(--blurple);" onclick="toggleAuthMode()">Switch to Register/Login</p>
         </div>
     </div>
 
     <nav class="top-nav">
         <div style="font-weight:bold; color:white;">🎒 MARKET</div>
         <div onclick="toggleDrawer()" style="cursor:pointer; display:flex; align-items:center; gap:8px;">
-            <div id="navUser" style="font-size:12px; font-weight:bold;">Guest</div>
-            <div id="navEmoji" style="background:var(--blurple); width:32px; height:32px; border-radius:50%; display:flex; align-items:center; justify-content:center;">👤</div>
+            <div id="navUser" style="font-size:12px;">Guest</div>
+            <div id="navEmoji" style="background:var(--blurple); width:30px; height:30px; border-radius:50%; display:flex; align-items:center; justify-content:center;">👤</div>
         </div>
     </nav>
 
     <div class="main-container">
         <div class="menu-sidebar">
-            <div class="menu-item active" onclick="showSection('home', this)"># marketplace</div>
-            <div class="menu-item" id="sellerTab" style="display:none; color:var(--blurple);" onclick="showSection('seller', this)"># my-shop</div>
+            <div class="menu-item active" onclick="showTab('home', this)"># welcome</div>
+            <div class="menu-item" onclick="showTab('chips', this)">🍟 chips</div>
+            <div class="menu-item" onclick="showTab('soda', this)">🥤 soda</div>
+            <div class="menu-item" onclick="showTab('fidgets', this)">🕹️ fidgets</div>
+            <div id="sellerTab" class="menu-item" style="display:none; color:var(--success);" onclick="showTab('seller', this)">🛠️ seller-setup</div>
         </div>
 
-        <div id="homeSection" style="flex-grow:1; display:flex; align-items:center; justify-content:center; text-align:center;">
-            <h1 style="color:white;"># school-marketplace</h1>
-        </div>
-
-        <div id="sellerSection" class="seller-view">
-            <h2 style="color:white; margin:0;"># my-seller-slots</h2>
-            <p style="color:#949ba4;">Select items to list on the market.</p>
-            <div id="slotContainer" class="slot-grid"></div>
-            <button class="btn" style="margin-top:30px; width:200px;" onclick="alert('Shop Layout Saved!')">Save Layout</button>
+        <div class="content-area">
+            <div id="home" class="category-view active"><h1># school-marketplace</h1><p>Select a category to start.</p></div>
+            <div id="chips" class="category-view"><h2>🍟 Chips Section</h2><p>Items will appear here.</p></div>
+            <div id="soda" class="category-view"><h2>🥤 Soda Section</h2><p>Items will appear here.</p></div>
+            <div id="fidgets" class="category-view"><h2>🕹️ Fidgets Section</h2><p>Items will appear here.</p></div>
+            
+            <div id="seller" class="category-view">
+                <h2>🛠️ Seller Dashboard</h2>
+                <div id="slotContainer" class="slot-grid"></div>
+                <button class="btn" style="width:200px; margin-top:20px;">Save Listings</button>
+            </div>
         </div>
     </div>
 
-    <div id="overlay" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:200;" onclick="toggleDrawer()"></div>
     <div id="drawer" class="drawer">
         <div style="text-align:center;">
-            <div id="drawerEmoji" style="font-size:40px; margin:0 auto 10px; background:var(--blurple); width:70px; height:70px; border-radius:50%; display:flex; align-items:center; justify-content:center;">👤</div>
-            <h2 id="drawerUser" style="color:white; margin:0;">Guest</h2>
-            
-            <p style="color:#b5bac1; font-size:12px; margin-top:15px;">Profile Emoji</p>
+            <div id="drawerEmoji" style="font-size:40px; margin-bottom:10px;">👤</div>
+            <h3 id="drawerUser">Guest</h3>
             <div id="emojiPicker" class="emoji-grid"></div>
-
-            <div id="adminSection" style="display:none; margin-top:20px; border-top:1px solid #3f4147; padding-top:15px;">
-                <p style="color:var(--success); font-size:11px; font-weight:bold;">👑 ADMIN TOOLS</p>
-                <button class="btn" style="background:var(--success);" onclick="openPromote()">Promote Seller</button>
+            <div id="adminSection" style="display:none; border-top:1px solid #444; padding-top:10px;">
+                <p style="color:var(--success); font-size:10px;">ADMIN TOOLS</p>
+                <button class="btn" style="background:var(--success);" onclick="promotePrompt()">Promote This iPad</button>
             </div>
-            
-            <button class="btn" style="background:var(--danger); margin-top:40px;" onclick="signOut()">Log Out</button>
+            <button class="btn" style="background:var(--danger); margin-top:20px;" onclick="signOut()">Log Out</button>
         </div>
     </div>
 
     <script>
-        const SHOP_ITEMS = ["Coca Cola", "Diet Coke", "Monster Energy", "Doritos Cool Ranch", "Doritos Nachos", "Hot Fries", "Takis", "Lays Classic", "Barbeque", "Keyboard Fidgets", "Poppets", "Clickers"];
-        const emojis = "😈💀💩👹🤬😡🤑😱😀😁😆🥹😅😂🤣🥲☺️😊😇🙂🙃😉😌😗😙😚😭😢😖🫡🫢🤭🫣🥴🤢🤮🤧😷🤒🤕🤐🐶🐱🐭🐹🐰🦊🐻🐼🐻‍❄️🐨🐯🦁🐮🐷🐽🐸🐵🙈🙉🙊🐒🐔🐧🐦🐤🐣🕸️🕷️🦗🦟🪳🪲🪰🐜🐞🐌🦋🐛🪱🐝🫎🦄🐴🐗🐺🦇🦉🦅🐦‍⬛🦆🪿🐥💫⭐🌟✨⚡️☄️💥🔥🌈☃️⛄🌬️🍏⚽🏀🏈⚾🥎🎾🏐🏉🥏🎱🪀🏓🏸🏒🏑🥍🏏🪃🥅⛳🪁🛝🏹🎣🤿🥊📱📲💻⌨️🖥️🖨️🖱️🖲️🕹️🗜️💽💾🧻🗯️".match(/./gu);
-        let isRegistering = false;
+        const ITEMS = ["Coca Cola", "Diet Coke", "Monster Energy", "Doritos Cool Ranch", "Takis", "Hot Fries", "Lays Classic", "Barbeque", "Keyboard Fidgets", "Poppets", "Clickers"];
+        const emojis = "😈💀💩👹🤬😡🤑😱😀😁😆🥹😅😂🤣🥲☺️😊😇🙂🙃😉😌".match(/./gu);
+        let isReg = false;
 
-        window.onload = () => { checkAuth(); setupEmojis(); };
+        window.onload = () => {
+            const user = localStorage.getItem('u');
+            if(!user) document.getElementById('authModal').style.display='flex';
+            else setupUI(user);
+            
+            // CHECK FOR SELLER LINK IN URL
+            const p = new URLSearchParams(window.location.search);
+            if(p.get('role')==='seller') {
+                localStorage.setItem('isSeller', 'true');
+                localStorage.setItem('tier', p.get('tier'));
+                window.history.replaceState({}, document.title, window.location.pathname);
+            }
+            if(localStorage.getItem('isSeller')==='true') showSellerMenu();
+        };
 
         function handleAuth() {
-            const u = document.getElementById('userInput').value.trim();
-            const p = document.getElementById('passInput').value.trim();
-            if(isRegistering) {
-                localStorage.setItem('reg_user', u); localStorage.setItem('reg_pass', p);
-                localStorage.setItem('session_active', 'true'); location.reload();
-            } else {
-                if(u === localStorage.getItem('reg_user') && p === localStorage.getItem('reg_pass')) {
-                    localStorage.setItem('session_active', 'true'); location.reload();
-                } else { alert("Wrong password!"); }
-            }
+            const u = document.getElementById('userInput').value;
+            const p = document.getElementById('passInput').value;
+            if(isReg) { localStorage.setItem('u', u); localStorage.setItem('p', p); }
+            if(u === localStorage.getItem('u') && p === localStorage.getItem('p')) location.reload();
+            else alert("Wrong password!");
         }
 
-        function checkAuth() {
-            if(localStorage.getItem('session_active') !== 'true') {
-                document.getElementById('authModal').style.display = 'flex';
-            } else {
-                const u = localStorage.getItem('reg_user');
-                const p = localStorage.getItem('reg_pass');
-                document.getElementById('navUser').innerText = u;
-                document.getElementById('drawerUser').innerText = u;
-                if(u.toLowerCase() === "jonny" && p === "Jonny678!") document.getElementById('adminSection').style.display='block';
-                if(localStorage.getItem('is_seller') === 'true') {
-                    document.getElementById('sellerTab').style.display = 'block';
-                    setupSellerSlots(localStorage.getItem('seller_tier'));
-                }
-            }
-        }
-
-        function setupEmojis() {
-            const p = document.getElementById('emojiPicker');
+        function setupUI(u) {
+            document.getElementById('navUser').innerText = u;
+            document.getElementById('drawerUser').innerText = u;
+            if(u.toLowerCase()==='jonny' && localStorage.getItem('p')==='Jonny678!') document.getElementById('adminSection').style.display='block';
+            
+            const picker = document.getElementById('emojiPicker');
             emojis.forEach(e => {
                 let s = document.createElement('span'); s.innerText = e; s.style.cursor="pointer";
-                s.onclick = () => { localStorage.setItem('m_emoji', e); updateUI(); };
-                p.appendChild(s);
+                s.onclick = () => { document.getElementById('navEmoji').innerText=e; document.getElementById('drawerEmoji').innerText=e; };
+                picker.appendChild(s);
             });
-            updateUI();
         }
 
-        function updateUI() {
-            const e = localStorage.getItem('m_emoji') || '👤';
-            document.getElementById('navEmoji').innerText = e;
-            document.getElementById('drawerEmoji').innerText = e;
+        function promotePrompt() {
+            const tier = prompt("Enter Tier (1, 2, 3, max):");
+            const link = window.location.href + "?role=seller&tier=" + tier;
+            alert("SHARE THIS LINK WITH THE SELLER:\n\n" + link);
         }
 
-        function submitPromotion() {
-            const target = document.getElementById('promoUser').value.trim();
-            const tier = document.getElementById('promoTier').value;
-            // In a real app, this would update a database. Here we alert the instruction:
-            alert("Jonny: To promote " + target + ", they must be using this device right now. Promotion saved locally.");
-            localStorage.setItem('is_seller', 'true');
-            localStorage.setItem('seller_tier', tier);
-            location.reload();
-        }
-
-        function setupSellerSlots(tier) {
-            const container = document.getElementById('slotContainer');
-            container.innerHTML = "";
-            let count = (tier === '1') ? 2 : (tier === '2') ? 5 : (tier === '3') ? 10 : 20;
+        function showSellerMenu() {
+            document.getElementById('sellerTab').style.display = 'block';
+            const tier = localStorage.getItem('tier');
+            const count = tier === '1' ? 2 : tier === '2' ? 5 : tier === '3' ? 10 : 20;
+            const con = document.getElementById('slotContainer');
             for(let i=1; i<=count; i++) {
-                container.innerHTML += `<div class="slot-card"><small>Slot ${i}</small><select>${SHOP_ITEMS.map(it => `<option>${it}</option>`).join('')}</select></div>`;
+                con.innerHTML += `<div class="slot-card"><small>Slot ${i}</small><select>${ITEMS.map(it=>`<option>${it}</option>`).join('')}</select></div>`;
             }
         }
 
-        function showSection(sec, btn) {
-            document.querySelectorAll('.menu-item').forEach(i => i.classList.remove('active'));
+        function showTab(id, btn) {
+            document.querySelectorAll('.category-view').forEach(v => v.classList.remove('active'));
+            document.querySelectorAll('.menu-item').forEach(m => m.classList.remove('active'));
+            document.getElementById(id).classList.add('active');
             btn.classList.add('active');
-            document.getElementById('homeSection').style.display = (sec === 'home') ? 'flex' : 'none';
-            document.getElementById('sellerSection').style.display = (sec === 'seller') ? 'block' : 'none';
         }
 
-        function toggleAuthMode() { isRegistering = !isRegistering; document.getElementById('authTitle').innerText = isRegistering ? "Create Account" : "Welcome Back"; }
-        function signOut() { localStorage.setItem('session_active', 'false'); location.reload(); }
-        function openPromote() { document.getElementById('promoteModal').style.display='flex'; }
-        function closePromote() { document.getElementById('promoteModal').style.display='none'; }
-        function toggleDrawer() { document.getElementById('drawer').classList.toggle('open'); document.getElementById('overlay').style.display = document.getElementById('drawer').classList.contains('open') ? 'block' : 'none'; }
+        function toggleAuthMode() { isReg = !isReg; document.getElementById('authTitle').innerText = isReg ? "Register" : "Login"; }
+        function toggleDrawer() { document.getElementById('drawer').classList.toggle('open'); }
+        function signOut() { localStorage.removeItem('u'); location.reload(); }
     </script>
 </body>
 </html>
