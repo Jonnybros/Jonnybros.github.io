@@ -20,21 +20,24 @@
         .main-container { display: flex; flex-grow: 1; overflow: hidden; }
         .menu-sidebar { width: 200px; background: var(--bg-secondary); padding: 15px 10px; display: flex; flex-direction: column; gap: 8px; }
         .menu-item { text-decoration: none; color: #949ba4; padding: 10px; border-radius: 4px; font-weight: bold; cursor: pointer; }
+        .menu-item:hover, .menu-item.active { background: #3f4147; color: white; }
         
-        /* Seller Slots */
+        /* Seller View */
         .seller-view { flex-grow: 1; padding: 20px; overflow-y: auto; display: none; }
         .slot-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 15px; margin-top: 20px; }
-        .slot-card { background: var(--bg-tertiary); padding: 15px; border-radius: 8px; border: 1px solid #4e5058; }
+        .slot-card { background: var(--bg-tertiary); padding: 15px; border-radius: 8px; border: 1px solid #4e5058; text-align: center; }
 
         .drawer { position: fixed; top: 0; right: -300px; width: 280px; height: 100%; background: #232428; z-index: 201; transition: 0.3s; padding: 30px 15px; box-sizing: border-box; }
         .drawer.open { right: 0; }
+        .emoji-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 5px; max-height: 150px; overflow-y: auto; background: var(--bg-tertiary); padding: 8px; border-radius: 6px; margin: 10px 0; }
+        
         .btn { background: var(--blurple); color: white; border: none; padding: 12px; border-radius: 4px; font-weight: bold; cursor: pointer; width: 100%; margin-top: 10px; }
         input, select { width: 100%; padding: 12px; background: var(--bg-tertiary); border: none; color: white; margin-bottom: 15px; border-radius: 4px; box-sizing: border-box; }
     </style>
 </head>
 <body>
 
-    <!-- LOGIN MODAL -->
+    <!-- AUTH MODAL -->
     <div id="authModal" class="modal-overlay">
         <div class="modal-box">
             <h2 id="authTitle" style="color:white; margin:0 0 20px;">Welcome Back</h2>
@@ -49,7 +52,7 @@
     </div>
 
     <!-- PROMOTION MODAL -->
-    <div id="promoModal" class="modal-overlay">
+    <div id="promoteModal" class="modal-overlay">
         <div class="modal-box">
             <h2 style="color:white; margin:0 0 20px;">Promote Seller</h2>
             <input type="text" id="promoUser" placeholder="Target Username">
@@ -59,7 +62,7 @@
                 <option value="3">Tier 3 (10 Slots)</option>
                 <option value="max">Max Tier (20 Slots)</option>
             </select>
-            <button class="btn" style="background:var(--success);" onclick="generatePromoLink()">Generate Link</button>
+            <button class="btn" style="background:var(--success);" onclick="submitPromotion()">Confirm Promotion</button>
             <button class="btn" style="background:#4e5058;" onclick="closePromote()">Cancel</button>
         </div>
     </div>
@@ -74,21 +77,19 @@
 
     <div class="main-container">
         <div class="menu-sidebar">
-            <div class="menu-item" onclick="showSection('home')"># marketplace</div>
-            <div class="menu-item" id="sellerTab" style="display:none; color:var(--blurple);" onclick="showSection('seller')"># my-shop</div>
+            <div class="menu-item active" onclick="showSection('home', this)"># marketplace</div>
+            <div class="menu-item" id="sellerTab" style="display:none; color:var(--blurple);" onclick="showSection('seller', this)"># my-shop</div>
         </div>
 
-        <!-- Home Section -->
         <div id="homeSection" style="flex-grow:1; display:flex; align-items:center; justify-content:center; text-align:center;">
             <h1 style="color:white;"># school-marketplace</h1>
         </div>
 
-        <!-- Seller Section -->
         <div id="sellerSection" class="seller-view">
             <h2 style="color:white; margin:0;"># my-seller-slots</h2>
             <p style="color:#949ba4;">Select items to list on the market.</p>
             <div id="slotContainer" class="slot-grid"></div>
-            <button class="btn" style="margin-top:30px; width:200px;">Save Shop Layout</button>
+            <button class="btn" style="margin-top:30px; width:200px;" onclick="alert('Shop Layout Saved!')">Save Layout</button>
         </div>
     </div>
 
@@ -98,6 +99,9 @@
             <div id="drawerEmoji" style="font-size:40px; margin:0 auto 10px; background:var(--blurple); width:70px; height:70px; border-radius:50%; display:flex; align-items:center; justify-content:center;">👤</div>
             <h2 id="drawerUser" style="color:white; margin:0;">Guest</h2>
             
+            <p style="color:#b5bac1; font-size:12px; margin-top:15px;">Profile Emoji</p>
+            <div id="emojiPicker" class="emoji-grid"></div>
+
             <div id="adminSection" style="display:none; margin-top:20px; border-top:1px solid #3f4147; padding-top:15px;">
                 <p style="color:var(--success); font-size:11px; font-weight:bold;">👑 ADMIN TOOLS</p>
                 <button class="btn" style="background:var(--success);" onclick="openPromote()">Promote Seller</button>
@@ -109,24 +113,21 @@
 
     <script>
         const SHOP_ITEMS = ["Coca Cola", "Diet Coke", "Monster Energy", "Doritos Cool Ranch", "Doritos Nachos", "Hot Fries", "Takis", "Lays Classic", "Barbeque", "Keyboard Fidgets", "Poppets", "Clickers"];
+        const emojis = "😈💀💩👹🤬😡🤑😱😀😁😆🥹😅😂🤣🥲☺️😊😇🙂🙃😉😌😗😙😚😭😢😖🫡🫢🤭🫣🥴🤢🤮🤧😷🤒🤕🤐🐶🐱🐭🐹🐰🦊🐻🐼🐻‍❄️🐨🐯🦁🐮🐷🐽🐸🐵🙈🙉🙊🐒🐔🐧🐦🐤🐣🕸️🕷️🦗🦟🪳🪲🪰🐜🐞🐌🦋🐛🪱🐝🫎🦄🐴🐗🐺🦇🦉🦅🐦‍⬛🦆🪿🐥💫⭐🌟✨⚡️☄️💥🔥🌈☃️⛄🌬️🍏⚽🏀🏈⚾🥎🎾🏐🏉🥏🎱🪀🏓🏸🏒🏑🥍🏏🪃🥅⛳🪁🛝🏹🎣🤿🥊📱📲💻⌨️🖥️🖨️🖱️🖲️🕹️🗜️💽💾🧻🗯️".match(/./gu);
         let isRegistering = false;
 
-        window.onload = () => { checkAuth(); checkSellerURL(); };
-
-        function toggleAuthMode() { isRegistering = !isRegistering; document.getElementById('authTitle').innerText = isRegistering ? "Create Account" : "Welcome Back"; }
+        window.onload = () => { checkAuth(); setupEmojis(); };
 
         function handleAuth() {
             const u = document.getElementById('userInput').value.trim();
             const p = document.getElementById('passInput').value.trim();
-            if(!u || !p) return alert("Fill all fields!");
-
             if(isRegistering) {
                 localStorage.setItem('reg_user', u); localStorage.setItem('reg_pass', p);
                 localStorage.setItem('session_active', 'true'); location.reload();
             } else {
                 if(u === localStorage.getItem('reg_user') && p === localStorage.getItem('reg_pass')) {
                     localStorage.setItem('session_active', 'true'); location.reload();
-                } else { alert("Wrong username/password!"); }
+                } else { alert("Wrong password!"); }
             }
         }
 
@@ -138,53 +139,61 @@
                 const p = localStorage.getItem('reg_pass');
                 document.getElementById('navUser').innerText = u;
                 document.getElementById('drawerUser').innerText = u;
-                
-                // SECURE ADMIN CHECK: Both name AND password must match
-                if(u.toLowerCase() === "jonny" && p === "Jonny678!") {
-                    document.getElementById('adminSection').style.display='block';
+                if(u.toLowerCase() === "jonny" && p === "Jonny678!") document.getElementById('adminSection').style.display='block';
+                if(localStorage.getItem('is_seller') === 'true') {
+                    document.getElementById('sellerTab').style.display = 'block';
+                    setupSellerSlots(localStorage.getItem('seller_tier'));
                 }
             }
         }
 
-        function checkSellerURL() {
-            const params = new URLSearchParams(window.location.search);
-            if(params.get('role') === 'seller') {
-                document.getElementById('sellerTab').style.display = 'block';
-                setupSellerSlots(params.get('tier'));
-            }
+        function setupEmojis() {
+            const p = document.getElementById('emojiPicker');
+            emojis.forEach(e => {
+                let s = document.createElement('span'); s.innerText = e; s.style.cursor="pointer";
+                s.onclick = () => { localStorage.setItem('m_emoji', e); updateUI(); };
+                p.appendChild(s);
+            });
+            updateUI();
+        }
+
+        function updateUI() {
+            const e = localStorage.getItem('m_emoji') || '👤';
+            document.getElementById('navEmoji').innerText = e;
+            document.getElementById('drawerEmoji').innerText = e;
+        }
+
+        function submitPromotion() {
+            const target = document.getElementById('promoUser').value.trim();
+            const tier = document.getElementById('promoTier').value;
+            // In a real app, this would update a database. Here we alert the instruction:
+            alert("Jonny: To promote " + target + ", they must be using this device right now. Promotion saved locally.");
+            localStorage.setItem('is_seller', 'true');
+            localStorage.setItem('seller_tier', tier);
+            location.reload();
         }
 
         function setupSellerSlots(tier) {
             const container = document.getElementById('slotContainer');
+            container.innerHTML = "";
             let count = (tier === '1') ? 2 : (tier === '2') ? 5 : (tier === '3') ? 10 : 20;
             for(let i=1; i<=count; i++) {
-                container.innerHTML += `
-                    <div class="slot-card">
-                        <small style="color:#949ba4">Slot ${i}</small>
-                        <select style="margin-top:8px; padding:5px; font-size:12px;">
-                            <option>Empty</option>
-                            ${SHOP_ITEMS.map(it => `<option>${it}</option>`).join('')}
-                        </select>
-                    </div>`;
+                container.innerHTML += `<div class="slot-card"><small>Slot ${i}</small><select>${SHOP_ITEMS.map(it => `<option>${it}</option>`).join('')}</select></div>`;
             }
         }
 
-        function showSection(sec) {
+        function showSection(sec, btn) {
+            document.querySelectorAll('.menu-item').forEach(i => i.classList.remove('active'));
+            btn.classList.add('active');
             document.getElementById('homeSection').style.display = (sec === 'home') ? 'flex' : 'none';
             document.getElementById('sellerSection').style.display = (sec === 'seller') ? 'block' : 'none';
         }
 
+        function toggleAuthMode() { isRegistering = !isRegistering; document.getElementById('authTitle').innerText = isRegistering ? "Create Account" : "Welcome Back"; }
         function signOut() { localStorage.setItem('session_active', 'false'); location.reload(); }
-        function openPromote() { document.getElementById('promoModal').style.display='flex'; }
-        function closePromote() { document.getElementById('promoModal').style.display='none'; }
+        function openPromote() { document.getElementById('promoteModal').style.display='flex'; }
+        function closePromote() { document.getElementById('promoteModal').style.display='none'; }
         function toggleDrawer() { document.getElementById('drawer').classList.toggle('open'); document.getElementById('overlay').style.display = document.getElementById('drawer').classList.contains('open') ? 'block' : 'none'; }
-        
-        function generatePromoLink() {
-            const tier = document.getElementById('promoTier').value;
-            const link = window.location.origin + window.location.pathname + "?role=seller&tier=" + tier;
-            alert("Copy this link for the seller:\n\n" + link);
-            closePromote();
-        }
     </script>
 </body>
 </html>
