@@ -2,113 +2,162 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>School Market - Admin & Seller</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>School Marketplace</title>
     <style>
-        :root { --bg: #313338; --card: #2b2d31; --blurple: #5865f2; --text: #dbdee1; }
-        body { background: var(--bg); color: var(--text); font-family: sans-serif; margin: 0; padding: 20px; }
+        :root {
+            --bg-dark: #313338;
+            --bg-secondary: #2b2d31;
+            --bg-tertiary: #1e1f22;
+            --blurple: #5865f2;
+            --text: #dbdee1;
+            --danger: #da373c;
+        }
+
+        body { 
+            background-color: var(--bg-dark); color: var(--text); font-family: sans-serif; 
+            margin: 0; display: flex; flex-direction: column; height: 100vh; overflow: hidden;
+        }
+
+        /* Top Bar */
+        .top-nav { background: var(--bg-secondary); padding: 10px 16px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid rgba(0,0,0,0.2); }
+        .search-box { background: var(--bg-tertiary); border-radius: 4px; padding: 6px 12px; flex-grow: 1; margin: 0 15px; }
+        .search-box input { background: transparent; border: none; color: white; width: 100%; outline: none; }
+
+        /* Main Menu Layout */
+        .main-container { display: flex; flex-grow: 1; overflow: hidden; }
+        .menu-sidebar { width: 240px; background: var(--bg-secondary); padding: 15px 10px; display: flex; flex-direction: column; gap: 8px; }
+        .menu-item { text-decoration: none; color: #949ba4; padding: 10px; border-radius: 4px; display: flex; align-items: center; gap: 10px; font-weight: bold; }
+        .menu-item:hover { background: #3f4147; color: white; }
+
+        /* Slide-Over Drawer */
+        .drawer-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); z-index: 200; }
+        .drawer {
+            position: fixed; top: 0; right: -300px; width: 280px; height: 100%;
+            background: #232428; z-index: 201; transition: 0.3s ease; padding: 30px 15px; box-sizing: border-box;
+            overflow-y: auto;
+        }
+        .drawer.open { right: 0; }
+
+        /* Admin Tools Section (Hidden by Default) */
+        #adminSection { display: none; margin-top: 20px; padding-top: 15px; border-top: 1px solid #3f4147; text-align: left; }
+        .admin-btn { background: #23a55a; color: white; border: none; padding: 10px; border-radius: 4px; width: 100%; font-weight: bold; cursor: pointer; margin-top: 10px; }
+
+        /* General Styles */
+        .emoji-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 5px; max-height: 150px; overflow-y: auto; background: var(--bg-tertiary); padding: 8px; border-radius: 6px; margin-top: 10px; }
+        .btn { background: var(--blurple); color: white; border: none; padding: 12px; border-radius: 4px; font-weight: bold; cursor: pointer; width: 100%; margin-top: 10px; }
+        .danger { background: var(--danger); }
         
-        /* Layout Parts */
-        .admin-box { background: #232428; border: 2px solid var(--blurple); padding: 20px; border-radius: 8px; margin-bottom: 20px; display: none; }
-        .seller-menu { background: var(--card); padding: 20px; border-radius: 8px; display: none; margin-top: 20px; }
-        
-        .slot-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 15px; margin-top: 15px; }
-        .slot-card { background: #1e1f22; padding: 15px; border-radius: 8px; text-align: center; }
-        
-        .btn { background: var(--blurple); color: white; border: none; padding: 10px 20px; border-radius: 4px; cursor: pointer; font-weight: bold; width: 100%; margin: 5px 0; }
-        select { width: 100%; padding: 8px; background: #313338; color: white; border: 1px solid #4f545c; border-radius: 4px; margin-top: 10px; }
-        
-        #authModal { display: none; position: fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.9); z-index:1000; justify-content:center; align-items:center; }
+        #authModal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.95); z-index: 1000; justify-content: center; align-items: center; }
     </style>
 </head>
 <body>
 
-    <!-- 1. LOGIN MODAL -->
+    <!-- LOGIN MODAL -->
     <div id="authModal">
-        <div style="background:var(--card); padding:30px; border-radius:8px; text-align:center; width:300px;">
-            <h2>Enter Username</h2>
-            <input type="text" id="userInput" style="width:100%; padding:10px; margin-bottom:10px;">
+        <div style="background:var(--bg-secondary); padding:30px; border-radius:8px; text-align:center; width:300px;">
+            <h2 style="color:white;">Enter Shop</h2>
+            <input type="text" id="userInput" placeholder="Username" style="width:100%; padding:12px; background:var(--bg-tertiary); border:none; color:white; margin:10px 0; border-radius:4px;">
             <button class="btn" onclick="signIn()">Enter</button>
         </div>
     </div>
 
-    <!-- 2. ADMIN PANEL (Only for Jonny) -->
-    <div id="adminPanel" class="admin-box">
-        <h2 style="margin-top:0; color:white;">👑 Admin: Jonny's Tools</h2>
-        <p>Promote a student to unlock their seller slots.</p>
-        <button class="btn" onclick="promoteUser()">Promote User to Seller</button>
+    <nav class="top-nav">
+        <div style="font-weight:bold; color:white;">🎒 MARKET</div>
+        <div class="search-box"><input type="text" placeholder="Search items or people..."></div>
+        <div onclick="toggleDrawer()" style="cursor:pointer; display:flex; align-items:center; gap:8px;">
+            <div id="navUser" style="font-size:12px; font-weight:bold;">Guest</div>
+            <div id="navEmoji" style="background:var(--blurple); width:32px; height:32px; border-radius:50%; display:flex; align-items:center; justify-content:center;">👤</div>
+        </div>
+    </nav>
+
+    <div class="main-container">
+        <div class="menu-sidebar">
+            <a href="chips.html" class="menu-item"><span>🍟</span> CHIPS</a>
+            <a href="soda.html" class="menu-item"><span>🥤</span> SODA</a>
+            <a href="fidgets.html" class="menu-item"><span>🕹️</span> FIDGETS</a>
+        </div>
+        <div style="flex-grow:1; display:flex; align-items:center; justify-content:center; text-align:center; padding:20px;">
+            <div>
+                <h1 style="color:white; margin:0;"># welcome-to-market</h1>
+                <p style="color:#949ba4;">Select a channel on the left to start trading.</p>
+            </div>
+        </div>
     </div>
 
-    <!-- 3. SELLER DASHBOARD -->
-    <div id="sellerDashboard" class="seller-menu">
-        <h2 style="margin-top:0; color:white;">🏪 Seller Dashboard</h2>
-        <p id="tierInfo">Your Slots:</p>
-        <div id="slotContainer" class="slot-grid"></div>
-        <hr style="border:0; border-top:1px solid #4f545c; margin:20px 0;">
-        <a href="YOUR_GOOGLE_FORM_LINK" target="_blank" class="btn" style="text-decoration:none; display:block; text-align:center;">Submit New Item Data</a>
-    </div>
+    <!-- ACCOUNT & ADMIN DRAWER -->
+    <div id="overlay" class="drawer-overlay" onclick="toggleDrawer()"></div>
+    <div id="drawer" class="drawer">
+        <div style="text-align:center;">
+            <div id="drawerEmoji" style="font-size:40px; margin:0 auto 10px; background:var(--blurple); width:70px; height:70px; border-radius:50%; display:flex; align-items:center; justify-content:center;">👤</div>
+            <h2 id="drawerUser" style="color:white; margin:0;">Guest</h2>
+            
+            <p style="color:#b5bac1; font-size:12px; margin-top:15px;">Profile Emoji</p>
+            <div id="emojiPicker" class="emoji-grid"></div>
 
-    <!-- 4. MAIN SHOP AREA -->
-    <div id="mainShop">
-        <h1># school-marketplace</h1>
-        <p>Categories: <a href="chips.html" style="color:var(--blurple)">Chips</a> | <a href="soda.html" style="color:var(--blurple)">Soda</a></p>
-        <div id="marketGrid" class="slot-grid">
-            <!-- Items appear here -->
+            <!-- Jonny's Admin Tools Inside the Window -->
+            <div id="adminSection">
+                <p style="color:#23a55a; font-weight:bold; font-size:11px; text-transform:uppercase;">👑 Admin Tools</p>
+                <button class="admin-btn" onclick="promoteUser()">Promote to Seller</button>
+            </div>
+
+            <button class="btn danger" onclick="signOut()">Log Out</button>
         </div>
     </div>
 
     <script>
-        const ITEMS = ["Coca Cola", "Diet Coke", "Monster Energy", "Doritos Cool Ranch", "Doritos Nachos", "Hot Fries", "Takis", "Lays Classic", "Barbeque", "Keyboard Fidgets", "Poppets", "Clickers"];
+        const emojis = "😈💀💩👹🤬😡🤑😱😀😁😆🥹😅😂🤣🥲☺️😊😇🙂🙃😉😌😗😙😚😭😢😖🫡🫢🤭🫣🥴🤢🤮🤧😷🤒🤕🤐🐶🐱🐭🐹🐰🦊🐻🐼🐻‍❄️🐨🐯🦁🐮🐷🐽🐸🐵🙈🙉🙊🐒🐔🐧🐦🐤🐣🕸️🕷️🦗🦟🪳🪲🪰🐜🐞🐌🦋🐛🪱🐝🫎🦄🐴🐗🐺🦇🦉🦅🐦‍⬛🦆🪿🐥💫⭐🌟✨⚡️☄️💥🔥🌈☃️⛄🌬️🍏⚽🏀🏈⚾🥎🎾🏐🏉🥏🎱🪀🏓🏸🏒🏑🥍🏏🪃🥅⛳🪁🛝🏹🎣🤿🥊📱📲💻⌨️🖥️🖨️🖱️🖲️🕹️🗜️💽💾🧻🗯️".match(/./gu);
 
         window.onload = function() {
-            const user = localStorage.getItem('m_user');
-            if (!user) {
-                document.getElementById('authModal').style.display = 'flex';
-            } else {
-                // Check if Admin
-                if (user.toLowerCase() === "jonny") {
-                    document.getElementById('adminPanel').style.display = 'block';
-                }
-                // Check if Seller via URL
-                const params = new URLSearchParams(window.location.search);
-                if (params.get('role') === 'seller') {
-                    showSellerMenu(params.get('tier'));
-                }
-            }
+            checkAuth();
+            const picker = document.getElementById('emojiPicker');
+            emojis.forEach(e => {
+                let s = document.createElement('span'); s.innerText = e; s.style.cursor="pointer"; s.style.fontSize="22px";
+                s.onclick = () => { localStorage.setItem('m_emoji', e); updateUI(localStorage.getItem('m_user')); };
+                picker.appendChild(s);
+            });
         };
 
-        function signIn() {
-            const val = document.getElementById('userInput').value.trim();
-            if (val) {
-                localStorage.setItem('m_user', val);
-                location.reload();
+        function checkAuth() {
+            const u = localStorage.getItem('m_user');
+            if (!u) { document.getElementById('authModal').style.display='flex'; }
+            else { 
+                updateUI(u);
+                if (u.toLowerCase() === "jonny") document.getElementById('adminSection').style.display = 'block';
             }
+        }
+
+        function signIn() {
+            const n = document.getElementById('userInput').value.trim();
+            if (n.length < 2) return;
+            localStorage.setItem('m_user', n);
+            localStorage.setItem('m_emoji', '😎');
+            location.reload();
         }
 
         function promoteUser() {
-            const name = prompt("Student Username:");
-            const tier = prompt("Tier (1, 2, 3, or max):");
+            const target = prompt("Username to Promote:");
+            const tier = prompt("Tier (1, 2, 3, max):");
             const link = window.location.origin + window.location.pathname + "?role=seller&tier=" + tier;
-            alert("Send this link to " + name + ":\n\n" + link);
+            alert("Send this link to " + target + " to unlock their " + tier + " slots:\n\n" + link);
         }
 
-        function showSellerMenu(tier) {
-            document.getElementById('sellerDashboard').style.display = 'block';
-            const container = document.getElementById('slotContainer');
-            let count = (tier === '1') ? 2 : (tier === '2') ? 5 : (tier === '3') ? 10 : 20;
-            document.getElementById('tierInfo').innerText = "Tier " + tier + " Status: " + count + " Slots Unlocked";
-            
-            for(let i=1; i<=count; i++) {
-                container.innerHTML += `
-                    <div class="slot-card">
-                        <small>Slot ${i}</small>
-                        <select>
-                            <option>Empty</option>
-                            ${ITEMS.map(it => `<option>${it}</option>`).join('')}
-                        </select>
-                    </div>`;
-            }
+        function updateUI(u) {
+            const e = localStorage.getItem('m_emoji') || '👤';
+            document.getElementById('navUser').innerText = u;
+            document.getElementById('drawerUser').innerText = u;
+            document.getElementById('navEmoji').innerText = e;
+            document.getElementById('drawerEmoji').innerText = e;
         }
+
+        function toggleDrawer() {
+            const d = document.getElementById('drawer');
+            const o = document.getElementById('overlay');
+            d.classList.toggle('open');
+            o.style.display = d.classList.contains('open') ? 'block' : 'none';
+        }
+
+        function signOut() { localStorage.clear(); location.reload(); }
     </script>
 </body>
 </html>
