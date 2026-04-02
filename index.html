@@ -5,9 +5,31 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>School Marketplace</title>
 
-    <!-- 1. FIREBASE BRAINS (Compat Version) -->
-    <script src="https://gstatic.com"></script>
-    <script src="https://gstatic.com"></script>
+   <!-- 1. Load the Core Firebase App first -->
+<script src="https://gstatic.com"></script>
+
+<!-- 2. Load the Realtime Database second -->
+<script src="https://gstatic.com"></script>
+
+<!-- 3. Your Initialization Script -->
+<script>
+  // Your Firebase configuration
+  const firebaseConfig = {
+    apiKey: "AIzaSyBZTGndL235B-c6mYft3mblBz6eN4vqRLM",
+    authDomain: "://firebaseapp.com",
+    databaseURL: "https://firebaseio.com",
+    projectId: "school-market-42bf2",
+    storageBucket: "school-market-42bf2.firebasestorage.app",
+    messagingSenderId: "849244125573",
+    appId: "1:849244125573:web:cca81082d1204de4db6cec"
+  };
+
+  // Connect to Firebase using the "Compat" way
+  if (!firebase.apps.length) {
+    firebase.initializeApp(firebaseConfig);
+  }
+  const db = firebase.database();
+</script>
 
     <style>
         :root { --bg: #313338; --card: #2b2d31; --dark: #1e1f22; --blurple: #5865f2; --text: #dbdee1; --success: #23a55a; --danger: #da373c; }
