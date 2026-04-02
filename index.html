@@ -1,72 +1,114 @@
-<script>
-    // HARDCODED ADMIN
-    const ADMIN_USER = "Jonny";
-    
-    // ITEM DATABASE
-    const MARKET_ITEMS = [
-        "Coca Cola", "Diet Coke", "Monster Energy", "Doritos Cool Ranch", 
-        "Doritos Nachos", "Hot Fries", "Takis", "Lays Classic", 
-        "Barbeque Lays", "Keyboard Fidget", "Poppets", "Clickers"
-    ];
-
-    window.onload = function() {
-        checkAuth();
-        const user = localStorage.getItem('m_user');
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>School Market - Admin & Seller</title>
+    <style>
+        :root { --bg: #313338; --card: #2b2d31; --blurple: #5865f2; --text: #dbdee1; }
+        body { background: var(--bg); color: var(--text); font-family: sans-serif; margin: 0; padding: 20px; }
         
-        // Show Admin Panel if user is Jonny
-        if (user === ADMIN_USER) {
-            document.getElementById('adminPanel').style.display = 'block';
-        }
+        /* Layout Parts */
+        .admin-box { background: #232428; border: 2px solid var(--blurple); padding: 20px; border-radius: 8px; margin-bottom: 20px; display: none; }
+        .seller-menu { background: var(--card); padding: 20px; border-radius: 8px; display: none; margin-top: 20px; }
         
-        // Check if user has "Seller" link (Simulated via URL)
-        const urlParams = new URLSearchParams(window.location.search);
-        if (urlParams.get('role') === 'seller') {
-            document.getElementById('sellerMenu').style.display = 'block';
-            setupSellerSlots(urlParams.get('tier'));
-        }
-    };
-
-    function setupSellerSlots(tier) {
-        let slots = 0;
-        if (tier === '1') slots = 2;
-        if (tier === '2') slots = 5;
-        if (tier === '3') slots = 10;
-        if (tier === 'max') slots = 20;
-
-        const container = document.getElementById('slotContainer');
-        for (let i = 1; i <= slots; i++) {
-            container.innerHTML += `
-                <div class="slot-card">
-                    <h4>Slot ${i}</h4>
-                    <select id="slot-${i}" onchange="updateMarket(${i})">
-                        <option>Select Item...</option>
-                        ${MARKET_ITEMS.map(item => `<option>${item}</option>`).join('')}
-                    </select>
-                </div>`;
-        }
-    }
-
-    // Function for Jonny to "Promote"
-    function promoteUser() {
-        const target = prompt("Enter Username to Promote:");
-        const tier = prompt("Enter Tier (1, 2, 3, or max):");
-        const sellerLink = window.location.href + "?role=seller&tier=" + tier;
+        .slot-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 15px; margin-top: 15px; }
+        .slot-card { background: #1e1f22; padding: 15px; border-radius: 8px; text-align: center; }
         
-        // In a real app, you'd email this. Here, we'll just alert it.
-        alert("Copy and send this link to " + target + " to give them Seller Status:\n\n" + sellerLink);
-    }
-</script>
-<!-- Admin Panel (Only visible to Jonny) -->
-<div id="adminPanel" style="display:none; background: #232428; padding: 20px; border: 1px solid var(--blurple);">
-    <h3>Admin: Jonny's Command Center</h3>
-    <button class="btn" onclick="promoteUser()">Promote User to Seller</button>
-</div>
+        .btn { background: var(--blurple); color: white; border: none; padding: 10px 20px; border-radius: 4px; cursor: pointer; font-weight: bold; width: 100%; margin: 5px 0; }
+        select { width: 100%; padding: 8px; background: #313338; color: white; border: 1px solid #4f545c; border-radius: 4px; margin-top: 10px; }
+        
+        #authModal { display: none; position: fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.9); z-index:1000; justify-content:center; align-items:center; }
+    </style>
+</head>
+<body>
 
-<!-- Seller Menu -->
-<div id="sellerMenu" style="display:none; padding: 20px;">
-    <h2>Your Seller Dashboard</h2>
-    <div id="slotContainer" class="grid"></div>
-    <hr>
-    <h3>Add New Custom Item</h3>
-    <a href="YOUR_GOOGLE_FORM_FOR_NEW_ITEMS" class="btn">Open Submission Form</a>
-</div>
+    <!-- 1. LOGIN MODAL -->
+    <div id="authModal">
+        <div style="background:var(--card); padding:30px; border-radius:8px; text-align:center; width:300px;">
+            <h2>Enter Username</h2>
+            <input type="text" id="userInput" style="width:100%; padding:10px; margin-bottom:10px;">
+            <button class="btn" onclick="signIn()">Enter</button>
+        </div>
+    </div>
+
+    <!-- 2. ADMIN PANEL (Only for Jonny) -->
+    <div id="adminPanel" class="admin-box">
+        <h2 style="margin-top:0; color:white;">👑 Admin: Jonny's Tools</h2>
+        <p>Promote a student to unlock their seller slots.</p>
+        <button class="btn" onclick="promoteUser()">Promote User to Seller</button>
+    </div>
+
+    <!-- 3. SELLER DASHBOARD -->
+    <div id="sellerDashboard" class="seller-menu">
+        <h2 style="margin-top:0; color:white;">🏪 Seller Dashboard</h2>
+        <p id="tierInfo">Your Slots:</p>
+        <div id="slotContainer" class="slot-grid"></div>
+        <hr style="border:0; border-top:1px solid #4f545c; margin:20px 0;">
+        <a href="YOUR_GOOGLE_FORM_LINK" target="_blank" class="btn" style="text-decoration:none; display:block; text-align:center;">Submit New Item Data</a>
+    </div>
+
+    <!-- 4. MAIN SHOP AREA -->
+    <div id="mainShop">
+        <h1># school-marketplace</h1>
+        <p>Categories: <a href="chips.html" style="color:var(--blurple)">Chips</a> | <a href="soda.html" style="color:var(--blurple)">Soda</a></p>
+        <div id="marketGrid" class="slot-grid">
+            <!-- Items appear here -->
+        </div>
+    </div>
+
+    <script>
+        const ITEMS = ["Coca Cola", "Diet Coke", "Monster Energy", "Doritos Cool Ranch", "Doritos Nachos", "Hot Fries", "Takis", "Lays Classic", "Barbeque", "Keyboard Fidgets", "Poppets", "Clickers"];
+
+        window.onload = function() {
+            const user = localStorage.getItem('m_user');
+            if (!user) {
+                document.getElementById('authModal').style.display = 'flex';
+            } else {
+                // Check if Admin
+                if (user.toLowerCase() === "jonny") {
+                    document.getElementById('adminPanel').style.display = 'block';
+                }
+                // Check if Seller via URL
+                const params = new URLSearchParams(window.location.search);
+                if (params.get('role') === 'seller') {
+                    showSellerMenu(params.get('tier'));
+                }
+            }
+        };
+
+        function signIn() {
+            const val = document.getElementById('userInput').value.trim();
+            if (val) {
+                localStorage.setItem('m_user', val);
+                location.reload();
+            }
+        }
+
+        function promoteUser() {
+            const name = prompt("Student Username:");
+            const tier = prompt("Tier (1, 2, 3, or max):");
+            const link = window.location.origin + window.location.pathname + "?role=seller&tier=" + tier;
+            alert("Send this link to " + name + ":\n\n" + link);
+        }
+
+        function showSellerMenu(tier) {
+            document.getElementById('sellerDashboard').style.display = 'block';
+            const container = document.getElementById('slotContainer');
+            let count = (tier === '1') ? 2 : (tier === '2') ? 5 : (tier === '3') ? 10 : 20;
+            document.getElementById('tierInfo').innerText = "Tier " + tier + " Status: " + count + " Slots Unlocked";
+            
+            for(let i=1; i<=count; i++) {
+                container.innerHTML += `
+                    <div class="slot-card">
+                        <small>Slot ${i}</small>
+                        <select>
+                            <option>Empty</option>
+                            ${ITEMS.map(it => `<option>${it}</option>`).join('')}
+                        </select>
+                    </div>`;
+            }
+        }
+    </script>
+</body>
+</html>
