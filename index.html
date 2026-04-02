@@ -1,130 +1,211 @@
-<script>
-    // 1. UPDATED CONFIG (Added -default-rtdb to your URL)
-    const firebaseConfig = {
-        apiKey: "AIzaSyBZTGndL235B-c6mYft3mblBz6eN4vqRLM",
-        authDomain: "://firebaseapp.com",
-        databaseURL: "https://firebaseio.com",
-        projectId: "school-market-42bf2",
-        storageBucket: "school-market-42bf2.firebasestorage.app",
-        messagingSenderId: "849244125573",
-        appId: "1:849244125573:web:cca81082d1204de4db6cec"
-    };
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>School Marketplace</title>
 
-    const ITEMS = ["Coca Cola", "Diet Coke", "Monster Energy", "Doritos Cool Ranch", "Takis", "Hot Fries", "Lays Classic", "Barbeque", "Keyboard Fidgets", "Poppets", "Clickers"];
-    const emojis = "😈💀💩👹🤬😡🤑😱😀😁😆🥹😅😂🤣🥲☺️😊😇".match(/./gu);
-    let db = null;
+    <!-- 1. FIREBASE BRAINS -->
+    <script src="https://gstatic.com"></script>
+    <script src="https://gstatic.com"></script>
 
-    // 2. STABLE INITIALIZATION
-    window.onload = function() {
-        try {
-            if (typeof firebase !== 'undefined') {
-                if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
-                db = firebase.database();
-                
-                // Test connection
-                db.ref(".info/connected").on("value", (snap) => {
-                    const statusEl = document.getElementById("status");
-                    if (snap.val() === true) {
-                        statusEl.innerText = "✅ Connected!";
-                        statusEl.style.color = "lime";
-                    } else {
-                        statusEl.innerText = "Connecting...";
-                        statusEl.style.color = "orange";
-                    }
-                });
+    <style>
+        :root { --bg: #313338; --card: #2b2d31; --dark: #1e1f22; --blurple: #5865f2; --text: #dbdee1; --success: #23a55a; --danger: #da373c; }
+        body { background-color: var(--bg); color: var(--text); font-family: sans-serif; margin: 0; display: flex; flex-direction: column; height: 100vh; overflow: hidden; }
 
-                const u = localStorage.getItem('m_user');
-                if (u) {
-                    document.getElementById('authModal').style.display = 'none';
-                    setupUI(u);
-                    checkSellerStatus(u);
-                }
-            }
-        } catch (e) {
-            console.error("Firebase Connection Error:", e);
-        }
-        setupEmojis();
-    };
-
-    // 3. FIXED LOGIN (Prevents accidental reset)
-    function handleAuth() {
-        const u = document.getElementById('userInput').value.trim();
-        const p = document.getElementById('passInput').value.trim();
+        /* Auth Modal */
+        .modal-overlay { display: flex; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.95); z-index: 1000; justify-content: center; align-items: center; }
+        .modal-box { background-color: var(--card); padding: 25px; border-radius: 8px; width: 300px; text-align: center; box-shadow: 0 8px 16px rgba(0,0,0,0.5); }
         
-        if (u && p) {
-            localStorage.setItem('m_user', u);
-            localStorage.setItem('m_pass', p);
-            // Small delay to ensure storage is saved before reload
-            setTimeout(() => { location.reload(); }, 100);
-        } else {
-            alert("Please enter both a username and password.");
-        }
-    }
+        /* Layout */
+        .top-nav { background: var(--card); padding: 10px 16px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid #1e1f22; height: 50px; box-sizing: border-box; }
+        .main-container { display: flex; flex-grow: 1; overflow: hidden; height: calc(100vh - 50px); }
+        .menu-sidebar { width: 220px; background: var(--card); padding: 15px 10px; display: flex; flex-direction: column; gap: 8px; }
+        .menu-item { text-decoration: none; color: #949ba4; padding: 10px; border-radius: 4px; font-weight: bold; cursor: pointer; }
+        .menu-item.active { background: #3f4147; color: white; }
 
-    function setupUI(u) {
-        document.getElementById('navUser').innerText = u;
-        document.getElementById('drawerUser').innerText = u;
-        const p = localStorage.getItem('m_pass');
-        if (u.toLowerCase() === "jonny" && p === "Jonny678!") {
-            document.getElementById('adminSection').style.display = 'block';
-        }
-    }
+        .content-area { flex-grow: 1; padding: 20px; overflow-y: auto; text-align: center; }
+        .category-view { display: none; }
+        .category-view.active { display: block; }
 
-    function checkSellerStatus(u) {
-        if (!db) return;
-        db.ref('users/' + u).on('value', (snap) => {
-            if (snap.val() && snap.val().is_seller) {
-                document.getElementById('sellerTab').style.display = 'block';
-                setupSellerSlots(snap.val().seller_tier || '1');
+        .drawer { position: fixed; top: 0; right: -300px; width: 280px; height: 100%; background: #232428; z-index: 201; transition: 0.3s; padding: 20px; box-sizing: border-box; }
+        .drawer.open { right: 0; }
+        .emoji-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 5px; max-height: 120px; overflow-y: auto; background: var(--dark); padding: 8px; border-radius: 6px; margin: 10px 0; }
+
+        .btn { background: var(--blurple); color: white; border: none; padding: 10px; border-radius: 4px; font-weight: bold; cursor: pointer; width: 100%; margin-top: 10px; }
+        input, select { width: 100%; padding: 12px; background: var(--dark); border: none; color: white; margin-bottom: 10px; border-radius: 4px; box-sizing: border-box; }
+    </style>
+</head>
+<body>
+
+    <!-- AUTH MODAL -->
+    <div id="authModal" class="modal-overlay">
+        <div class="modal-box">
+            <h2 id="authTitle" style="color:white; margin:0;">Welcome</h2>
+            <input type="text" id="userInput" placeholder="Username">
+            <input type="password" id="passInput" placeholder="Password">
+            <button class="btn" onclick="handleAuth()">Log In / Register</button>
+            <p id="status" style="color:orange; font-size:12px; margin-top:15px; font-weight:bold;">Connecting...</p>
+        </div>
+    </div>
+
+    <nav class="top-nav">
+        <div style="font-weight:bold; color:white;">🎒 MARKET</div>
+        <div onclick="toggleDrawer()" style="cursor:pointer; display:flex; align-items:center; gap:8px;">
+            <div id="navUser" style="font-size:12px;">Guest</div>
+            <div id="navEmoji" style="background:var(--blurple); width:30px; height:30px; border-radius:50%; display:flex; align-items:center; justify-content:center;">👤</div>
+        </div>
+    </nav>
+
+    <div class="main-container">
+        <div class="menu-sidebar">
+            <div class="menu-item active" onclick="showTab('home', this)">🏠 Welcome</div>
+            <div class="menu-item" onclick="showTab('chips', this)">🍟 Chips</div>
+            <div class="menu-item" onclick="showTab('soda', this)">🥤 Soda</div>
+            <div class="menu-item" onclick="showTab('fidgets', this)">🕹️ Fidgets</div>
+            <div id="sellerTab" class="menu-item" style="display:none; color:var(--success);" onclick="showTab('seller', this)">🛠️ Seller Setup</div>
+        </div>
+
+        <div class="content-area">
+            <div id="home" class="category-view active"><h1># school-marketplace</h1><p>Online Database Connected.</p></div>
+            <div id="chips" class="category-view"><h2>🍟 Chips</h2><p>Items will appear here.</p></div>
+            <div id="soda" class="category-view"><h2>🥤 Soda</h2><p>Items will appear here.</p></div>
+            <div id="fidgets" class="category-view"><h2>🕹️ Fidgets</h2><p>Items will appear here.</p></div>
+            
+            <div id="seller" class="category-view">
+                <h2>🛠️ Seller Dashboard</h2>
+                <div id="slotContainer" style="display:grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap:10px;"></div>
+                <button class="btn" style="width:200px; margin-top:20px;" onclick="alert('Listings Updated!')">Update Shop</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="drawer" class="drawer">
+        <div style="text-align:center;">
+            <div id="drawerEmoji" style="font-size:40px; margin:0 auto 10px; background:var(--blurple); width:70px; height:70px; border-radius:50%; display:flex; align-items:center; justify-content:center;">👤</div>
+            <h3 id="drawerUser">Guest</h3>
+            <div id="emojiPicker" class="emoji-grid"></div>
+            
+            <div id="adminSection" style="display:none; border-top:1px solid #444; padding-top:10px; margin-top:10px;">
+                <p style="color:var(--success); font-size:10px; font-weight:bold;">👑 ADMIN TOOLS</p>
+                <input type="text" id="promoTarget" placeholder="Username to Promote">
+                <button class="btn" style="background:var(--success);" onclick="promoteUser()">Promote User</button>
+            </div>
+            
+            <button class="btn" style="background:var(--danger); margin-top:40px;" onclick="signOut()">Log Out</button>
+        </div>
+    </div>
+
+    <script>
+        const firebaseConfig = {
+            apiKey: "AIzaSyBZTGndL235B-c6mYft3mblBz6eN4vqRLM",
+            authDomain: "://firebaseapp.com",
+            databaseURL: "https://firebaseio.com",
+            projectId: "school-market-42bf2",
+            storageBucket: "school-market-42bf2.firebasestorage.app",
+            messagingSenderId: "849244125573",
+            appId: "1:849244125573:web:cca81082d1204de4db6cec"
+        };
+
+        const ITEMS = ["Coca Cola", "Diet Coke", "Monster Energy", "Doritos Cool Ranch", "Takis", "Hot Fries", "Lays Classic", "Barbeque", "Keyboard Fidgets", "Poppets", "Clickers"];
+        const emojis = "😈💀💩👹🤬😡🤑😱😀😁😆🥹😅😂🤣🥲☺️😊😇".match(/./gu);
+        let db = null;
+
+        window.onload = function() {
+            try {
+                if (typeof firebase !== 'undefined') {
+                    if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+                    db = firebase.database();
+                    
+                    // Connection Status
+                    db.ref(".info/connected").on("value", (snap) => {
+                        const s = document.getElementById("status");
+                        if (snap.val() === true) { s.innerText = "✅ Connected!"; s.style.color = "lime"; }
+                        else { s.innerText = "Connecting..."; s.style.color = "orange"; }
+                    });
+
+                    const u = localStorage.getItem('m_user');
+                    if (u) {
+                        document.getElementById('authModal').style.display = 'none';
+                        setupUI(u);
+                        checkSellerStatus(u);
+                    }
+                }
+            } catch (e) { console.error(e); }
+            setupEmojis();
+        };
+
+        function handleAuth() {
+            const u = document.getElementById('userInput').value.trim();
+            const p = document.getElementById('passInput').value.trim();
+            if (u && p) {
+                localStorage.setItem('m_user', u);
+                localStorage.setItem('m_pass', p);
+                setTimeout(() => { location.reload(); }, 100);
             }
-        });
-    }
-
-    function promoteUser() {
-        const target = document.getElementById('promoTarget').value.trim();
-        if (target && db) {
-            db.ref('users/' + target).update({ is_seller: true, seller_tier: '1' })
-            .then(() => alert(target + " is now an active Seller!"))
-            .catch((err) => alert("Error promoting: " + err.message));
         }
-    }
 
-    // Rest of your functions (setupSellerSlots, setupEmojis, etc.) stay the same...
-    function setupSellerSlots(tier) {
-        const con = document.getElementById('slotContainer');
-        con.innerHTML = "";
-        let count = tier === '1' ? 2 : tier === '2' ? 5 : 10;
-        for(let i=1; i<=count; i++) {
-            con.innerHTML += `<div class="slot-card"><small>Slot ${i}</small><select>${ITEMS.map(it => `<option>${it}</option>`).join('')}</select></div>`;
+        function setupUI(u) {
+            document.getElementById('navUser').innerText = u;
+            document.getElementById('drawerUser').innerText = u;
+            if (u.toLowerCase() === "jonny" && localStorage.getItem('m_pass') === "Jonny678!") {
+                document.getElementById('adminSection').style.display = 'block';
+            }
         }
-    }
 
-    function setupEmojis() {
-        const p = document.getElementById('emojiPicker');
-        if (!p) return;
-        emojis.forEach(e => {
-            let s = document.createElement('span'); s.innerText = e; s.style.cursor="pointer";
-            s.onclick = () => { 
-                document.getElementById('navEmoji').innerText=e; 
-                document.getElementById('drawerEmoji').innerText=e; 
-                localStorage.setItem('m_emoji', e);
-            };
-            p.appendChild(s);
-        });
-        const savedEmoji = localStorage.getItem('m_emoji') || '👤';
-        document.getElementById('navEmoji').innerText = savedEmoji;
-        document.getElementById('drawerEmoji').innerText = savedEmoji;
-    }
+        function checkSellerStatus(u) {
+            if(!db) return;
+            db.ref('users/' + u).on('value', (snap) => {
+                if (snap.val() && snap.val().is_seller) {
+                    document.getElementById('sellerTab').style.display = 'block';
+                    setupSellerSlots(snap.val().seller_tier || '1');
+                }
+            });
+        }
 
-    function showTab(id, btn) {
-        document.querySelectorAll('.category-view').forEach(v => v.classList.remove('active'));
-        document.querySelectorAll('.menu-item').forEach(m => m.classList.remove('active'));
-        document.getElementById(id).classList.add('active');
-        btn.classList.add('active');
-    }
+        function promoteUser() {
+            const target = document.getElementById('promoTarget').value.trim();
+            if (target && db) {
+                db.ref('users/' + target).update({ is_seller: true, seller_tier: '1' })
+                .then(() => alert(target + " is now a Seller!"));
+            }
+        }
 
-    function toggleDrawer() { document.getElementById('drawer').classList.toggle('open'); }
-    function signOut() { localStorage.clear(); location.reload(); }
-</script>
+        function setupSellerSlots(tier) {
+            const con = document.getElementById('slotContainer');
+            con.innerHTML = "";
+            let count = tier === '1' ? 2 : tier === '2' ? 5 : 10;
+            for(let i=1; i<=count; i++) {
+                con.innerHTML += `<div style="background:var(--dark); padding:10px; border-radius:8px; border:1px solid #4e5058; margin-bottom:5px;"><small>Slot ${i}</small><select style="width:100%; background:transparent; color:white; border:none;">${ITEMS.map(it => `<option>${it}</option>`).join('')}</select></div>`;
+            }
+        }
 
+        function setupEmojis() {
+            const p = document.getElementById('emojiPicker');
+            emojis.forEach(e => {
+                let s = document.createElement('span'); s.innerText = e; s.style.cursor="pointer";
+                s.onclick = () => { 
+                    document.getElementById('navEmoji').innerText=e; 
+                    document.getElementById('drawerEmoji').innerText=e; 
+                    localStorage.setItem('m_emoji', e);
+                };
+                p.appendChild(s);
+            });
+            const savedEmoji = localStorage.getItem('m_emoji') || '👤';
+            document.getElementById('navEmoji').innerText = savedEmoji;
+            document.getElementById('drawerEmoji').innerText = savedEmoji;
+        }
+
+        function showTab(id, btn) {
+            document.querySelectorAll('.category-view').forEach(v => v.classList.remove('active'));
+            document.querySelectorAll('.menu-item').forEach(m => m.classList.remove('active'));
+            document.getElementById(id).classList.add('active');
+            btn.classList.add('active');
+        }
+
+        function toggleDrawer() { document.getElementById('drawer').classList.toggle('open'); }
+        function signOut() { localStorage.clear(); location.reload(); }
+    </script>
+</body>
+</html>
 
