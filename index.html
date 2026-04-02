@@ -5,73 +5,87 @@
     <style>
         /* Discord Theme Colors */
         body { background-color: #313338; color: #dbdee1; font-family: sans-serif; margin: 0; padding: 20px; }
-        .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 15px; }
-        .card { background-color: #2b2d31; padding: 15px; border-radius: 8px; text-align: center; }
-        .btn { background-color: #5865f2; color: white; padding: 10px; border: none; border-radius: 4px; cursor: pointer; width: 100%; font-weight: bold; }
         
-        /* The Popup (Modal) */
-        .modal-overlay { 
-            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
-            background: rgba(0,0,0,0.85); justify-content: center; align-items: center; z-index: 1000;
+        /* Category Navigation Bar */
+        .category-bar { display: flex; gap: 10px; margin-bottom: 25px; overflow-x: auto; padding-bottom: 10px; }
+        .cat-btn { 
+            background-color: #2b2d31; color: #949ba4; border: none; padding: 8px 16px; 
+            border-radius: 20px; cursor: pointer; white-space: nowrap; font-weight: bold;
         }
-        .modal-content { 
-            background-color: #313338; padding: 32px; border-radius: 8px; width: 90%; max-width: 400px; 
-            text-align: center; box-shadow: 0 8px 16px rgba(0,0,0,0.3);
-        }
-        input { width: 100%; padding: 10px; background: #1e1f22; border: none; border-radius: 3px; color: white; margin: 10px 0; box-sizing: border-box; }
-        .close-btn { color: #949ba4; cursor: pointer; margin-top: 10px; display: block; font-size: 12px; }
+        .cat-btn:hover, .cat-btn.active { background-color: #5865f2; color: white; }
+
+        /* Item Grid */
+        .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 12px; }
+        .card { background-color: #2b2d31; padding: 12px; border-radius: 8px; border: 1px solid #1e1f22; display: block; }
+        .card img { width: 100%; border-radius: 4px; margin-bottom: 8px; background: #1e1f22; height: 100px; object-fit: cover; }
+        h3 { margin: 5px 0; font-size: 16px; color: white; }
+        .price { color: #23a55a; font-weight: bold; margin: 5px 0; }
+        .btn { background-color: #5865f2; color: white; padding: 8px; border: none; border-radius: 3px; cursor: pointer; width: 100%; font-weight: bold; }
+
+        /* Hidden Items logic */
+        .card.hidden { display: none; }
     </style>
 </head>
 <body>
 
-<h1>🎒 School Shop</h1>
-<div class="grid">
-    <div class="card">
-        <h3>Mechanical Pencil</h3>
-        <p>$1.00</p>
-        <button class="btn" onclick="handleBuy()">Reserve & Meet</button>
-    </div>
+<header style="text-align: center; margin-bottom: 20px;">
+    <h1 style="color:white;">🎒 School Marketplace</h1>
+</header>
+
+<!-- Category Filter Buttons -->
+<div class="category-bar">
+    <button class="cat-btn active" onclick="filterItems('all', this)">All Items</button>
+    <button class="cat-btn" onclick="filterItems('chips', this)">🍟 Chips</button>
+    <button class="cat-btn" onclick="filterItems('soda', this)">🥤 Soda</button>
+    <button class="cat-btn" onclick="filterItems('fidgets', this)">🕹️ Fidgets</button>
 </div>
 
-<!-- Discord-Themed Popup -->
-<div id="authModal" class="modal-overlay">
-    <div class="modal-content">
-        <h2 style="color:white; margin-top:0;">Create Account</h2>
-        <p style="color:#b5bac1; font-size:14px;">You must have an account to buy items!</p>
-        <input type="text" id="username" placeholder="Username">
-        <input type="password" id="password" placeholder="Password">
-        <button class="btn" onclick="finishSignup()">Sign Up</button>
-        <a class="close-btn" onclick="closeModal()">Maybe later</a>
+<div class="grid" id="productGrid">
+    <!-- CHIPS ITEMS -->
+    <div class="card" data-category="chips">
+        <img src="chips-photo.jpg" alt="Chips">
+        <h3>Hot Cheetos</h3>
+        <p class="price">$1.50</p>
+        <button class="btn" onclick="handleBuy()">Reserve</button>
+    </div>
+
+    <!-- SODA ITEMS -->
+    <div class="card" data-category="soda">
+        <img src="soda-photo.jpg" alt="Soda">
+        <h3>Sprite Can</h3>
+        <p class="price">$1.00</p>
+        <button class="btn" onclick="handleBuy()">Reserve</button>
+    </div>
+
+    <!-- FIDGET ITEMS -->
+    <div class="card" data-category="fidgets">
+        <img src="fidget-photo.jpg" alt="Fidget">
+        <h3>Pop-It Spinner</h3>
+        <p class="price">$3.00</p>
+        <button class="btn" onclick="handleBuy()">Reserve</button>
     </div>
 </div>
 
 <script>
-    // 1. Check if they already have an "account"
+    // Filtering Logic
+    function filterItems(category, btn) {
+        // Update active button color
+        document.querySelectorAll('.cat-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+
+        // Filter cards
+        const cards = document.querySelectorAll('.card');
+        cards.forEach(card => {
+            if (category === 'all' || card.getAttribute('data-category') === category) {
+                card.classList.remove('hidden');
+            } else {
+                card.classList.add('hidden');
+            }
+        });
+    }
+
     function handleBuy() {
-        const isLoggedIn = localStorage.getItem('isLoggedIn');
-        if (isLoggedIn) {
-            alert("Reserved! Meet the seller at the Blue Benches.");
-            // Here you could send data to a Google Sheet if you wanted
-        } else {
-            document.getElementById('authModal').style.display = 'flex';
-        }
-    }
-
-    // 2. "Create" the account instantly
-    function finishSignup() {
-        const user = document.getElementById('username').value;
-        if (user.length > 2) {
-            localStorage.setItem('isLoggedIn', 'true');
-            localStorage.setItem('currentUser', user);
-            alert("Account created! You can now buy items.");
-            closeModal();
-        } else {
-            alert("Please enter a username.");
-        }
-    }
-
-    function closeModal() {
-        document.getElementById('authModal').style.display = 'none';
+        alert("Meeting spot: Library Entrance during 1st Lunch. Bring cash!");
     }
 </script>
 
