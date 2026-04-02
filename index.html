@@ -1,5 +1,113 @@
-<script>
-/* ✅ Your Firebase Config */
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>School Marketplace</title>
+
+    <!-- 1. FIREBASE BRAINS (Compat Version) -->
+    <script src="https://gstatic.com"></script>
+    <script src="https://gstatic.com"></script>
+
+    <style>
+        :root { --bg: #313338; --card: #2b2d31; --dark: #1e1f22; --blurple: #5865f2; --text: #dbdee1; --success: #23a55a; --danger: #da373c; }
+        body { background-color: var(--bg); color: var(--text); font-family: sans-serif; margin: 0; display: flex; flex-direction: column; height: 100vh; overflow: hidden; }
+
+        /* Auth Modal */
+        .modal-overlay { display: flex; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 1000; justify-content: center; align-items: center; }
+        .modal-box { background-color: var(--card); padding: 25px; border-radius: 8px; width: 300px; text-align: center; box-shadow: 0 8px 16px rgba(0,0,0,0.5); }
+        
+        /* Layout */
+        .top-nav { background: var(--card); padding: 10px 16px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid #1e1f22; }
+        .main-container { display: flex; flex-grow: 1; overflow: hidden; }
+        .menu-sidebar { width: 220px; background: var(--card); padding: 15px 10px; display: flex; flex-direction: column; gap: 8px; }
+        .menu-item { text-decoration: none; color: #949ba4; padding: 10px; border-radius: 4px; font-weight: bold; cursor: pointer; }
+        .menu-item.active { background: #3f4147; color: white; }
+
+        .content-area { flex-grow: 1; padding: 20px; overflow-y: auto; text-align: center; }
+        .category-view { display: none; }
+        .category-view.active { display: block; }
+
+        /* Account Drawer */
+        .drawer { position: fixed; top: 0; right: -300px; width: 280px; height: 100%; background: #232428; z-index: 201; transition: 0.3s; padding: 20px; box-sizing: border-box; }
+        .drawer.open { right: 0; }
+        .emoji-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 5px; max-height: 120px; overflow-y: auto; background: var(--dark); padding: 8px; border-radius: 6px; margin: 10px 0; }
+
+        /* Buttons & Inputs */
+        .btn { background: var(--blurple); color: white; border: none; padding: 10px; border-radius: 4px; font-weight: bold; cursor: pointer; width: 100%; margin-top: 10px; }
+        input, select { width: 100%; padding: 12px; background: var(--dark); border: none; color: white; margin-bottom: 10px; border-radius: 4px; box-sizing: border-box; }
+    </style>
+</head>
+<body>
+
+    <!-- AUTH MODAL -->
+    <div id="authModal" class="modal-overlay">
+        <div class="modal-box">
+            <h2 id="authTitle" style="color:white;">Welcome</h2>
+            <input type="text" id="userInput" placeholder="Username">
+            <input type="password" id="passInput" placeholder="Password">
+            <button class="btn" onclick="handleAuth()">Log In / Register</button>
+            <p id="status" style="color:orange; font-size:12px; margin-top:15px; font-weight:bold;">Connecting...</p>
+        </div>
+    </div>
+
+    <nav class="top-nav">
+        <div style="font-weight:bold; color:white;">🎒 MARKET</div>
+        <div onclick="toggleDrawer()" style="cursor:pointer; display:flex; align-items:center; gap:8px;">
+            <div id="navUser" style="font-size:12px;">Guest</div>
+            <div id="navEmoji" style="background:var(--blurple); width:30px; height:30px; border-radius:50%; display:flex; align-items:center; justify-content:center;">👤</div>
+        </div>
+    </nav>
+
+    <div class="main-container">
+        <div class="menu-sidebar">
+            <div class="menu-item active" onclick="showTab('home', this)">🏠 Welcome</div>
+            <div class="menu-item" onclick="showTab('chips', this)">🍟 Chips</div>
+            <div class="menu-item" onclick="showTab('soda', this)">🥤 Soda</div>
+            <div class="menu-item" onclick="showTab('fidgets', this)">🕹️ Fidgets</div>
+            <div id="sellerTab" class="menu-item" style="display:none; color:var(--success);" onclick="showTab('seller', this)">🛠️ Seller Setup</div>
+        </div>
+
+        <div class="content-area">
+            <div id="home" class="category-view active"><h1># school-marketplace</h1><p>Online Database Connected.</p></div>
+            <div id="chips" class="category-view"><h2>🍟 Chips</h2><p>Items will appear here.</p></div>
+            <div id="soda" class="category-view"><h2>🥤 Soda</h2><p>Items will appear here.</p></div>
+            <div id="fidgets" class="category-view"><h2>🕹️ Fidgets</h2><p>Items will appear here.</p></div>
+            
+            <div id="seller" class="category-view">
+                <h2>🛠️ Seller Dashboard</h2>
+                <div id="slotContainer"></div>
+                <button class="btn" style="width:200px; margin-top:20px;">Save to Market</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- DRAWER -->
+    <div id="drawer" class="drawer">
+        <div style="text-align:center;">
+            <div id="drawerEmoji" style="font-size:40px; margin-bottom:10px;">👤</div>
+            <h3 id="drawerUser">Guest</h3>
+            <div id="emojiPicker" class="emoji-grid"></div>
+            
+            <!-- ADMIN TOOLS -->
+            <div id="adminSection" style="display:none; border-top:1px solid #444; padding-top:10px; margin-top:10px;">
+                <p style="color:var(--success); font-size:10px;">ADMIN TOOLS</p>
+                <input type="text" id="promoTarget" placeholder="Username to Promote">
+                <button class="btn" style="background:var(--success);" onclick="promoteUser()">Promote User</button>
+            </div>
+            
+            <button class="btn" style="background:var(--danger); margin-top:20px;" onclick="signOut()">Log Out</button>
+        </div>
+    </div>
+
+    <script>
+        // 2. YOUR FIREBASE CONFIG
+       // Import the functions you need from the SDKs you need
+import { initializeApp } from "firebase/app";
+// TODO: Add SDKs for Firebase products that you want to use
+// https://firebase.google.com/docs/web/setup#available-libraries
+
+// Your web app's Firebase configuration
 const firebaseConfig = {
   apiKey: "AIzaSyBZTGndL235B-c6mYft3mblBz6eN4vqRLM",
   authDomain: "school-market-42bf2.firebaseapp.com",
@@ -10,65 +118,97 @@ const firebaseConfig = {
   appId: "1:849244125573:web:cca81082d1204de4db6cec"
 };
 
-let db = null;
+// Initialize Firebase
+const app = initializeApp(firebaseConfig);
 
-/* ✅ INIT FIREBASE */
-window.onload = function () {
-    try {
-        // Initialize using the global 'firebase' object from the script tags
-        if (!firebase.apps.length) {
-            firebase.initializeApp(firebaseConfig);
+        const ITEMS = ["Coca Cola", "Diet Coke", "Monster Energy", "Doritos Cool Ranch", "Takis", "Hot Fries", "Lays Classic", "Barbeque", "Keyboard Fidgets", "Poppets", "Clickers"];
+        const emojis = "😈💀💩👹🤬😡🤑😱😀😁😆🥹😅😂🤣🥲☺️😊😇".match(/./gu);
+        let db = null;
+
+        // 3. INIT FIREBASE
+        window.onload = function() {
+            try {
+                if (!firebase.apps.length) {
+                    firebase.initializeApp(firebaseConfig);
+                }
+                db = firebase.database();
+
+                const statusEl = document.getElementById("status");
+                if (statusEl) {
+                    statusEl.innerText = "✅ Connected!";
+                    statusEl.style.color = "lime";
+                }
+
+                // Check Login
+                const u = localStorage.getItem('m_user');
+                if (u) {
+                    document.getElementById('authModal').style.display = 'none';
+                    setupUI(u);
+                    checkSellerStatus(u);
+                }
+            } catch (e) {
+                console.error(e);
+                const statusEl = document.getElementById("status");
+                if (statusEl) statusEl.innerText = "❌ Connection Error";
+            }
+            setupEmojis();
+        };
+
+        function handleAuth() {
+            const u = document.getElementById('userInput').value.trim();
+            const p = document.getElementById('passInput').value.trim();
+            if (u && p) {
+                localStorage.setItem('m_user', u);
+                localStorage.setItem('m_pass', p);
+                location.reload();
+            }
         }
-        db = firebase.database();
 
-        document.getElementById("status").innerText = "✅ Connected!";
-        document.getElementById("status").style.color = "lime";
-
-        // Check if user is already logged in
-        const savedUser = localStorage.getItem("user");
-        if (savedUser) {
-            document.getElementById("authModal").style.display = "none";
-            document.getElementById("navUser").innerText = savedUser;
+        function setupUI(u) {
+            document.getElementById('navUser').innerText = u;
+            document.getElementById('drawerUser').innerText = u;
+            const p = localStorage.getItem('m_pass');
+            
+            // Secure Admin Check
+            if (u.toLowerCase() === "jonny" && p === "Jonny678!") {
+                document.getElementById('adminSection').style.display = 'block';
+            }
         }
 
-    } catch (e) {
-        document.getElementById("status").innerText = "❌ Connection Error";
-        document.getElementById("status").style.color = "red";
-        console.error("Firebase Error:", e);
-    }
-};
+        function checkSellerStatus(u) {
+            db.ref('users/' + u).on('value', (snap) => {
+                if (snap.val() && snap.val().is_seller) {
+                    document.getElementById('sellerTab').style.display = 'block';
+                }
+            });
+        }
 
-/* ✅ LOGIN */
-function handleAuth() {
-    const u = document.getElementById("userInput").value;
-    const p = document.getElementById("passInput").value;
-    
-    if (!u || !p) return alert("Enter username and password");
+        function promoteUser() {
+            const target = document.getElementById('promoTarget').value;
+            if (target && db) {
+                db.ref('users/' + target).update({ is_seller: true });
+                alert(target + " promoted to Seller!");
+            }
+        }
 
-    localStorage.setItem("user", u);
-    localStorage.setItem("pass", p); // Saving locally for this version
-    document.getElementById("authModal").style.display = "none";
-    document.getElementById("navUser").innerText = u;
-}
+        function setupEmojis() {
+            const p = document.getElementById('emojiPicker');
+            emojis.forEach(e => {
+                let s = document.createElement('span'); s.innerText = e; s.style.cursor="pointer";
+                s.onclick = () => { document.getElementById('navEmoji').innerText=e; document.getElementById('drawerEmoji').innerText=e; };
+                p.appendChild(s);
+            });
+        }
 
-/* ✅ PROMOTE (Saves to Online Database) */
-function promoteSelf() {
-    const u = localStorage.getItem("user");
+        function showTab(id, btn) {
+            document.querySelectorAll('.category-view').forEach(v => v.classList.remove('active'));
+            document.querySelectorAll('.menu-item').forEach(m => m.classList.remove('active'));
+            document.getElementById(id).classList.add('active');
+            btn.classList.add('active');
+        }
 
-    if (!u) return alert("Not logged in");
-    if (!db) return alert("Database not connected yet");
-
-    db.ref("users/" + u).update({ 
-        seller: true,
-        status: "Active Seller" 
-    })
-    .then(() => alert("✅ You are now a seller in the online database!"))
-    .catch(err => alert("❌ Database Error: " + err.message));
-}
-
-/* ✅ PAGE SWITCH */
-function showPage(id) {
-    document.querySelectorAll(".category-view").forEach(el => el.classList.remove("active"));
-    document.getElementById(id).classList.add('active');
-}
-</script>
+        function toggleDrawer() { document.getElementById('drawer').classList.toggle('open'); }
+        function signOut() { localStorage.clear(); location.reload(); }
+    </script>
+</body>
+</html>
